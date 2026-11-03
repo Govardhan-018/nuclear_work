@@ -365,14 +365,7 @@ h1,h2,h3,.brand { font-family: 'Manrope', sans-serif; }
 .heatmap-stats { display:flex; gap:35px; margin-top:16px; border-top:1px solid var(--line); padding-top:14px; }.heatmap-stats div { display:flex;flex-direction:column; }.heatmap-stats strong{font-size:16px}.heatmap-stats span{font-size:12px;color:var(--muted)}
 .heatmap-wrap.compact .heatmap { grid-template-rows:repeat(7,7px); gap:3px; }.heatmap-wrap.compact .heatmap i { width:auto;height:7px;min-width:7px; }
 .week-head,.week-body { display:grid; grid-template-columns:repeat(7,1fr); }.week-head { height:45px; }.week-head strong { display:grid;place-items:center;font-size:14px;border-right:1px solid var(--line); }.week-body>div { height:440px;border-right:1px solid var(--line);position:relative;background:repeating-linear-gradient(to bottom,transparent 0,transparent 54px,var(--line) 55px); }
-.week-event { position:absolute;left:6px;right:6px;padding:7px;border-radius:7px;color:white;font-size:13px; }.week-event small{opacity:.8}
-
-/* Focus */
-.target-pill { width:210px;background:var(--surface);padding:11px 13px;border:1px solid var(--line);border-radius:12px;box-shadow:var(--shadow);display:grid;grid-template-columns:1fr auto;gap:7px;font-size:13px;color:var(--muted)}.target-pill strong{color:var(--ink)}.target-pill .progress-track{grid-column:1/-1}
-.focus-layout { display:grid;grid-template-columns:1.25fr .75fr;gap:16px; }.timer-card { position:relative;min-height:585px;text-align:center;overflow:hidden;background:#f7f7f1; }.timer-card.running { background:#f1f6f2; }
-.timer-top { display:flex;justify-content:space-between;align-items:center;position:relative;z-index:3}.tree-scene { height:190px;position:absolute;left:0;right:0;top:66px;overflow:hidden}.ground{position:absolute;left:15%;right:15%;bottom:10px;height:38px;background:#dfe9db;border-radius:50%}.sun-dot{position:absolute;right:19%;top:20px;width:22px;height:22px;border-radius:50%;background:#eedba5}
-.tree { position:absolute;left:50%;bottom:33px;width:60px;height:88px;z-index:2;transform:translateX(-50%) scale(.76);transform-origin:bottom;transition:1s}.tree.grown{transform:translateX(-50%) scale(1)}.tree i{position:absolute;width:8px;height:48px;background:#806341;bottom:0;left:26px;border-radius:5px}.tree span,.tree b{position:absolute;width:48px;height:48px;border-radius:50%;background:#6b9c72;left:6px;top:10px}.tree b{width:36px;height:36px;left:27px;top:28px;background:#4f8561}
-.timer-ring { position:relative;z-index:4;margin:115px auto 0;width:max-content;background:rgba(255,255,255,.65);border-radius:50%;backdrop-filter:blur(4px)}.timer-ring .ring-label strong{font-size:38px;font-weight:500}.timer-topic{display:flex;flex-direction:column;gap:5px;margin:12px 0 18px}.timer-topic span{font-size:13px;color:var(--muted)}.timer-topic strong{font-size:16px}.timer-actions{display:flex;justify-content:center;gap:8px}.focus-side{display:grid;gap:16px}.inline-stats{display:flex;justify-content:space-between;border-top:1px solid var(--line);margin-top:16px;padding-top:12px}.inline-stats span{font-size:12px;color:var(--muted);display:flex;flex-direction:column}.inline-stats strong{font-size:15px;color:var(--ink)}
+.week-event { position:absolute;left:6px;right:6px;padding:7px;border-radius:7px;color:white;font-size:13px; }.week-event small{opacity:.8}.inline-stats{display:flex;justify-content:space-between;border-top:1px solid var(--line);margin-top:16px;padding-top:12px}.inline-stats span{font-size:12px;color:var(--muted);display:flex;flex-direction:column}.inline-stats strong{font-size:15px;color:var(--ink)}
 .bar-chart { height:180px;display:flex;align-items:flex-end;gap:8px;padding-top:20px}.bar-column{height:100%;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;gap:6px;flex:1}.bar-value{width:60%;min-width:9px;background:#c7dcd3;border-radius:5px 5px 2px 2px;position:relative;transition:.2s}.bar-value.hover{background:var(--teal)}.bar-value span{position:absolute;top:-20px;left:50%;transform:translateX(-50%);font-size:12px;background:var(--ink);color:white;padding:3px;border-radius:4px}.bar-column small{font-size:12px;color:var(--muted)}
 .subject-row { display:grid;grid-template-columns:105px 1fr 30px;align-items:center;gap:10px;margin:14px 0;font-size:13px}.subject-row>span{display:flex;align-items:center;gap:7px}.subject-row i{width:7px;height:7px;border-radius:50%}.subject-row strong{text-align:right}
 .focus-bottom{display:grid;grid-template-columns:1fr 1.2fr;gap:16px;margin-top:16px}.session-row{display:grid;grid-template-columns:35px 1fr auto;align-items:center;gap:10px;border-top:1px solid var(--line);padding:9px 0}.session-tree{width:31px;height:31px;display:grid;place-items:center;background:var(--teal-soft);border-radius:9px;color:var(--teal)}.session-row div{display:flex;flex-direction:column}.session-row strong,.session-row b{font-size:14px}.session-row small{font-size:12px;color:var(--muted)}.soft-note{font-size:14px;color:var(--muted);background:var(--surface-2);border-radius:9px;padding:11px;margin-top:15px;line-height:1.5}.soft-note strong{color:var(--ink)}
@@ -553,7 +546,6 @@ h1,h2,h3,.brand { font-family: 'Manrope', sans-serif; }
 .ai-actions { display:flex; gap:7px; flex-wrap:wrap; }
 .ai-actions button { border:1px solid rgba(255,255,255,.15); background:rgba(255,255,255,.08); color:white; padding:7px 10px; border-radius:999px; font-size:12px; }
 .study-mode-controls { display:flex; justify-content:space-between; gap:12px; margin-bottom:16px; }
-.immersive-header { display:none; }
 .health-flow { margin-bottom:16px; overflow:hidden; position:relative; transition:.35s ease; }
 .health-flow.saved { border-color:var(--teal); }
 .health-flow.saved:after { content:'Saved'; position:absolute; top:16px; right:-31px; width:110px; padding:5px 0; text-align:center; transform:rotate(38deg); background:var(--teal); color:#142019; font-size:12px; font-weight:700; }
@@ -709,10 +701,6 @@ body { background:#e2ef9c; }
 .heatmap .level-2,.heatmap-legend .level-2 { background:#d9ef88; }
 .heatmap .level-3,.heatmap-legend .level-3 { background:#c4e653; }
 .heatmap .level-4,.heatmap-legend .level-4 { background:#99af37; }
-.timer-card { background:white; }
-.timer-card.running { background:#f5f8e9; }
-.timer-ring { background:rgba(255,255,255,.75); }
-.target-pill { background:white; }
 .bar-value { background:var(--lavender); }
 .bar-value.hover { background:var(--teal-dark); }
 .subject-row:nth-child(even) .progress-fill { background:var(--teal); }
@@ -865,8 +853,6 @@ html[data-theme="dark"] .today-number,
 html[data-theme="dark"] .month-grid small { background:var(--teal); color:#1c2116; }
 html[data-theme="dark"] .heatmap i,
 html[data-theme="dark"] .heatmap-legend i { background:#303330; }
-html[data-theme="dark"] .timer-card.running { background:#252d20; }
-html[data-theme="dark"] .timer-ring { background:rgba(12,14,12,.68); }
 html[data-theme="dark"] .food-questions button,
 html[data-theme="dark"] .water-glasses button,
 html[data-theme="dark"] .answer-pills button,
@@ -1089,7 +1075,6 @@ html[data-theme="dark"] .multi-tooltip strong { color:#1c2116; }
 .nutrition-month-grid>div.logged i,.date-strip button i { animation:soft-pulse 2.2s ease-in-out infinite; }
 .strava-sync>i,.pulse-dot { animation:status-pulse 1.8s ease-in-out infinite; }
 .ai-orb { animation:ai-breathe 3s ease-in-out infinite; }
-.tree span,.tree b { animation:tree-breathe 3.5s ease-in-out infinite; transform-origin:bottom center; }
 .mobile-nav button,.sidebar nav button { transition:background-color .25s ease,color .25s ease,transform .25s ease; }
 .mobile-nav button:active,.sidebar nav button:active { transform:scale(.94); }
 .theme-toggle:active i { scale:.9; }
@@ -1480,10 +1465,6 @@ html[data-theme="dark"] .badge-down { background:#303330; color:#b4b8b3; }
 .portion-picker button,
 .energy-check button { display:inline-flex; align-items:center; justify-content:center; gap:6px; }
 .answer-pills { flex-wrap:wrap; }
-
-/* The tree is decoration layered over the timer card; letting it take pointer
-   events made the duration presets underneath it unclickable. */
-.tree-scene { pointer-events:none; }
 .duration-picker { position:relative; z-index:2; }
 
 /* The demo hid these toggles at phone width because the views behind them

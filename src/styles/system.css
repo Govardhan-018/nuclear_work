@@ -1108,3 +1108,302 @@ html[data-theme="dark"] .tone-picker .swatch.active { border-color: var(--teal);
 
 html[data-theme="dark"] .suggestion-chips button { background: #282b28; border-color: #3b3e3b; }
 html[data-theme="dark"] .ai-messages .assistant { background: #282b28; }
+
+/* ==========================================================================
+   Screen polish
+   ========================================================================== */
+
+/* The daily completion read as a large lime disc, louder than the content it
+   summarised. A pill sits better next to the heading. */
+.health-completion {
+  width: auto;
+  height: auto;
+  min-height: 30px;
+  padding: 0 var(--space-3);
+  border-radius: var(--radius-pill);
+  font-size: var(--text-sm);
+  display: inline-grid;
+  place-items: center;
+}
+
+/* Metric pickers in a section heading should not span the card. */
+.select-trigger.compact {
+  width: auto;
+  min-width: 140px;
+  min-height: var(--tap-sm);
+  font-size: var(--text-sm);
+}
+
+/* Calendar month cells need a real tap target on a phone. */
+@media (max-width: 760px) {
+  .month-grid > button { min-height: 72px; }
+  .nutrition-month-grid > button { min-height: var(--tap-sm); }
+  .calendar-toolbar { gap: var(--space-2); }
+  .calendar-toolbar h2 { font-size: var(--text-md); }
+}
+
+/* Stat cards keep their numbers from colliding on narrow screens. */
+.metric-grid,
+.fitness-stats,
+.task-summary,
+.settings-counts { gap: var(--space-3); }
+
+@media (max-width: 349px) {
+  .metric-grid,
+  .fitness-stats,
+  .task-summary,
+  .today-metrics { grid-template-columns: 1fr; }
+}
+
+/* ==========================================================================
+   Motion
+   ========================================================================== */
+
+/* Pages fade up as they mount. Kept short so navigation still feels instant. */
+.page {
+  animation: page-in var(--dur-mid) var(--ease-out);
+}
+
+@keyframes page-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: none; }
+}
+
+/* Cards stagger in gently; capped so a long list does not crawl. */
+.page .card {
+  animation: card-in var(--dur-slow) var(--ease-out) both;
+}
+
+@keyframes card-in {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: none; }
+}
+
+.page > *:nth-child(1) .card, .page > .card:nth-child(1) { animation-delay: 0ms; }
+.page > *:nth-child(2) .card, .page > .card:nth-child(2) { animation-delay: 40ms; }
+.page > *:nth-child(3) .card, .page > .card:nth-child(3) { animation-delay: 80ms; }
+.page > *:nth-child(4) .card, .page > .card:nth-child(4) { animation-delay: 120ms; }
+
+/* An active session must stay perfectly still: no entrance animations behind
+   the overlay, and no card motion while the clock is visible. */
+.session-overlay ~ * .card,
+.session-overlay .card { animation: none; }
+
+.button,
+.select-trigger,
+.option,
+.task-check,
+.habit-toggle {
+  transition:
+    background-color var(--dur-fast) var(--ease-out),
+    border-color var(--dur-fast) var(--ease-out),
+    transform var(--dur-fast) var(--ease-out);
+}
+
+.button:not(:disabled):active,
+.task-check:active,
+.habit-toggle:active { transform: scale(.97); }
+
+/* Progress bars grow from the left when they first appear. */
+.progress-fill { transition: width var(--dur-slow) var(--ease-out); }
+
+/* ==========================================================================
+   Loading skeletons
+   ========================================================================== */
+
+.skeleton {
+  border-radius: var(--radius-md);
+  background: linear-gradient(
+    100deg,
+    var(--surface-2) 30%,
+    color-mix(in srgb, var(--surface-2) 60%, var(--line)) 50%,
+    var(--surface-2) 70%
+  );
+  background-size: 220% 100%;
+  animation: shimmer 1.4s linear infinite;
+}
+
+@keyframes shimmer {
+  from { background-position: 180% 0; }
+  to { background-position: -40% 0; }
+}
+
+.skeleton-text { height: 1em; margin: 6px 0; }
+.skeleton-line { height: 12px; }
+
+html[data-theme="dark"] .health-completion { color: #1c2116 !important; }
+
+/* ==========================================================================
+   Accessibility fixes found by testing at 320-412px
+   ========================================================================== */
+
+/*
+ * Several controls are intentionally small visually (a checkbox, a switch, a
+ * water glass). Rather than inflate them, extend the hit area with a
+ * pseudo-element so the tap target reaches the Android minimum while the
+ * design stays as drawn.
+ */
+.checkbox,
+.task-check,
+.switch,
+.habit-toggle,
+.nutrition-month-grid > button,
+.water-glasses button,
+.inline-nav button,
+.recent-grid button,
+.month-grid > button {
+  position: relative;
+}
+
+.checkbox::after,
+.task-check::after,
+.switch::after,
+.inline-nav button::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: max(100%, var(--tap-sm));
+  height: max(100%, var(--tap-sm));
+  transform: translate(-50%, -50%);
+  /* Purely a hit area; never paints. */
+  background: transparent;
+}
+
+/* The library result rows put a progress bar between the label and the
+   chevron, which could not fit at 320px. */
+.fitness-row > div[style] { min-width: 0 !important; }
+
+@media (max-width: 379px) {
+  .fitness-row,
+  .record-row { grid-template-columns: 32px minmax(0, 1fr) auto; }
+  .fitness-row > div[style] { display: none; }
+  .fitness-row > small { display: none; }
+}
+
+/*
+ * At 320px five labels cannot share the bar at a readable size, so only the
+ * current tab is labelled. Every button keeps its aria-label, so the bar is
+ * unchanged for a screen reader.
+ */
+@media (max-width: 349px) {
+  .mobile-nav button small { display: none; }
+  .mobile-nav button.active small {
+    display: block;
+    font-size: 10.5px;
+  }
+  .mobile-nav button.active { flex: 1.5 1 0; }
+  .mobile-nav button svg { width: 22px; height: 22px; }
+}
+
+/*
+ * The month calendar has a minimum width below which the cells are unusable.
+ * It scrolls horizontally on a phone; between 761px and 1100px the sidebar
+ * takes 210px and the grid no longer fits, so it must scroll there too.
+ */
+@media (max-width: 1100px) {
+  .calendar-shell { overflow-x: auto; }
+  .month-calendar { min-width: 560px; }
+}
+
+@media (max-width: 760px) {
+  .month-calendar { min-width: 500px; }
+}
+
+/* Tablet band: these grids were still assuming the full desktop width. */
+@media (min-width: 761px) and (max-width: 1100px) {
+  .food-grid,
+  .food-lower,
+  .nutrition-layout,
+  .fitness-bottom,
+  .calendar-lower { grid-template-columns: 1fr; }
+}
+
+/* The wordmark opens search, so it needs a real target, not just the badge. */
+.mobile-wordmark {
+  min-height: var(--tap-sm);
+  padding: 0 var(--space-2) 0 0;
+}
+
+/*
+ * Tablet band (761-1100px): the sidebar still takes 210px, leaving roughly
+ * 560px of content, which is narrower than these grids were designed for.
+ * Collapse them rather than letting the page scroll sideways.
+ */
+@media (min-width: 761px) and (max-width: 1100px) {
+  .habit-list,
+  .analytics-grid,
+  .fitness-main,
+  .fitness-stats,
+  .focus-bottom,
+  .insight-summary,
+  .dashboard-grid,
+  .overview-grid,
+  .today-analytics,
+  .reading-hero,
+  .books-grid,
+  .collection-grid,
+  .recent-grid,
+  .task-board,
+  .metric-grid,
+  .today-metrics,
+  .task-summary { grid-template-columns: 1fr; }
+
+  .analytics-grid .large-chart,
+  .insight-summary .summary-lead,
+  .habit-overview .card:first-child { grid-column: auto; }
+
+  .habit-card { grid-template-columns: 52px minmax(0, 1fr) auto; }
+  .library-filter { overflow-x: auto; }
+}
+
+/* Calendar cells are adjacent, so an expanded hit area would overlap its
+   neighbour. Size the cells themselves instead. */
+.nutrition-month-grid > button { min-height: 42px; }
+
+@media (max-width: 379px) {
+  .nutrition-month-grid > button { min-height: 38px; }
+}
+
+/* The chevron on a library collection card was a bare 20px icon button. */
+.collection-card > button {
+  min-width: var(--tap-sm);
+  min-height: var(--tap-sm);
+  display: grid;
+  place-items: center;
+  border: 0;
+  background: transparent;
+  border-radius: var(--radius-md);
+  color: inherit;
+}
+
+/*
+ * Page headers put the title and its actions on one row. Below 1100px the
+ * sidebar leaves too little width for both, and the action buttons pushed the
+ * document sideways. Stack them and let the actions wrap.
+ */
+@media (max-width: 1100px) {
+  .page-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--space-4);
+  }
+
+  .header-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    width: 100%;
+  }
+
+  .header-actions .segmented { flex: 0 0 auto; }
+  .calendar-key { display: none; }
+  .section-title { flex-wrap: wrap; gap: var(--space-2); }
+}
+
+/* The month stepper arrows were 26px icon buttons. */
+.inline-nav button {
+  min-width: var(--tap-sm);
+  min-height: var(--tap-sm);
+  border-radius: var(--radius-md);
+}

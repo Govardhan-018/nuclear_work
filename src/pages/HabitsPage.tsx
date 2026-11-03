@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react"
 import { Icon } from "../components/Icon"
+import { Select } from "../components/Select"
 import { Button, Card, EmptyState, Modal, PageHeader, SectionTitle, Segmented } from "../components/UI"
 import { Heatmap, Ring } from "../components/Visuals"
 import { createHabit, deleteHabit, toggleHabitLog, updateHabit } from "../db/repo"
@@ -257,16 +258,15 @@ function HabitModal({ habit, onClose }: { habit?: Habit; onClose: () => void }) 
           </div>
         </div>
 
-        <label className="field">
+        <div className="field">
           <span>Frequency</span>
-          <select value={cadence} onChange={(e) => setCadence(e.target.value)}>
-            {CADENCES.map((c) => (
-              <option key={c.value} value={c.value}>
-                {c.label}
-              </option>
-            ))}
-          </select>
-        </label>
+          <Select
+            value={cadence}
+            options={CADENCES.map((c) => ({ value: c.value, label: c.label }))}
+            onChange={setCadence}
+            sheetTitle="Frequency"
+          />
+        </div>
 
         <div className="modal-actions">
           {habit && (

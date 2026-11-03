@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react"
 import { Badge, Button, Card, EmptyState, Modal, PageHeader, Progress, SectionTitle, Segmented } from "../components/UI"
 import { Heatmap } from "../components/Visuals"
+import { Select } from "../components/Select"
 import { addReadingSession, createBook, deleteBook, logReadingProgress, updateBook } from "../db/repo"
 import { useReadingStats } from "../db/stats"
 import { dayKey, formatShortDate, lastNDays, startOfMonth } from "../lib/date"
@@ -8,6 +9,7 @@ import type { Book, BookStatus } from "../db/types"
 import type { PageProps } from "./shared"
 
 const ACCENTS = ["sage", "sand", "forest", "cream"]
+const BOOK_STATUSES: BookStatus[] = ["Reading", "Want to read", "Completed"]
 
 export function ReadingPage(_props: PageProps) {
   const stats = useReadingStats()
@@ -225,17 +227,15 @@ function BookDetail({ book, onClose }: { book: Book; onClose: () => void }) {
         </label>
       </div>
 
-      <label className="field">
+      <div className="field">
         <span>Status</span>
-        <select
+        <Select
           value={book.status}
-          onChange={(e) => void updateBook(book.id, { status: e.target.value as BookStatus })}
-        >
-          {["Reading", "Want to read", "Completed"].map((s) => (
-            <option key={s}>{s}</option>
-          ))}
-        </select>
-      </label>
+          options={BOOK_STATUSES.map((s) => ({ value: s, label: s }))}
+          onChange={(value) => void updateBook(book.id, { status: value as BookStatus })}
+          sheetTitle="Reading status"
+        />
+      </div>
 
       <div className="modal-actions">
         <Button
@@ -296,14 +296,15 @@ function AddBookModal({ onClose }: { onClose: () => void }) {
             <span>Pages</span>
             <input type="number" inputMode="numeric" value={pages} onChange={(e) => setPages(e.target.value)} placeholder="288" />
           </label>
-          <label className="field">
+          <div className="field">
             <span>Status</span>
-            <select value={status} onChange={(e) => setStatus(e.target.value as BookStatus)}>
-              {["Reading", "Want to read", "Completed"].map((s) => (
-                <option key={s}>{s}</option>
-              ))}
-            </select>
-          </label>
+            <Select
+              value={status}
+              options={BOOK_STATUSES.map((s) => ({ value: s, label: s }))}
+              onChange={(value) => setStatus(value as BookStatus)}
+              sheetTitle="Reading status"
+            />
+          </div>
         </div>
         <div className="modal-actions">
           <Button variant="secondary" type="button" onClick={onClose}>

@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react"
 import { Icon } from "../components/Icon"
+import { Select } from "../components/Select"
 import { Badge, Button, Card, EmptyState, Modal, PageHeader, Progress, SectionTitle } from "../components/UI"
 import { BarChart } from "../components/Visuals"
 import { addManualActivity, deleteActivity } from "../db/repo"
@@ -474,16 +475,15 @@ function ManualActivityModal({ onClose }: { onClose: () => void }) {
           <span>Name</span>
           <input autoFocus value={name} onChange={(e) => setName(e.target.value)} placeholder="Evening run" />
         </label>
-        <label className="field">
+        <div className="field">
           <span>Type</span>
-          <select value={type} onChange={(e) => setType(e.target.value)}>
-            {ACTIVITY_TYPES.map((t) => (
-              <option key={t} value={t}>
-                {humanizeActivityType(t)}
-              </option>
-            ))}
-          </select>
-        </label>
+          <Select
+            value={type}
+            options={ACTIVITY_TYPES.map((t) => ({ value: t, label: humanizeActivityType(t) }))}
+            onChange={setType}
+            sheetTitle="Activity type"
+          />
+        </div>
         <div className="field-row">
           <label className="field">
             <span>Distance (km)</span>

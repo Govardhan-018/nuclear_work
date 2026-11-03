@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react"
 import { Icon } from "../components/Icon"
+import { Select } from "../components/Select"
 import { Badge, Button, Card, EmptyState, Modal, PageHeader, Progress, SectionTitle } from "../components/UI"
 import {
   addMeal, deleteMeal, setEnergy, setWaterGlasses, updateNutritionLog,
@@ -450,14 +451,15 @@ function MealModal({ onClose }: { onClose: () => void }) {
           <input autoFocus value={name} onChange={(e) => setName(e.target.value)} placeholder="Grain bowl with chickpeas" />
         </label>
         <div className="field-row">
-          <label className="field">
+          <div className="field">
             <span>Meal</span>
-            <select value={type} onChange={(e) => setType(e.target.value as MealType)}>
-              {MEAL_TYPES.map((t) => (
-                <option key={t}>{t}</option>
-              ))}
-            </select>
-          </label>
+            <Select
+              value={type}
+              options={MEAL_TYPES.map((t) => ({ value: t, label: t }))}
+              onChange={(value) => setType(value as MealType)}
+              sheetTitle="Meal"
+            />
+          </div>
           <label className="field">
             <span>Time</span>
             <input type="time" value={time} onChange={(e) => setTime(e.target.value)} />

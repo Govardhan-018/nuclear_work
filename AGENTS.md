@@ -61,7 +61,15 @@ path is missing, or when the repository contradicts this guide.
 ### `src/components/` and `src/lib/`
 
 `Icon`, `UI` (Button, Card, Modal, Badge, Progress, …), `Visuals` (charts),
-and `lib/date.ts`, `lib/polyline.ts`.
+`Sheet` (BottomSheet), `Select`, `Skeleton`, and `lib/date.ts`,
+`lib/polyline.ts`.
+
+### `src/styles/system.css`
+
+Design tokens and the mobile shell, loaded after `index.css` so it has the
+final word on layout and scale. Holds the fluid type scale, spacing, radius,
+elevation and motion tokens, the window-inset handling, the bottom navigation,
+bottom sheets and the immersive session screen.
 
 ## Dependencies
 
@@ -100,6 +108,18 @@ screen rather than introducing a parallel utility-based style.
   ("T", "S"), so list keys need the index, not just the label.
 - **Offline is the default.** Anything needing the network must degrade with a
   clear message rather than failing silently.
+- **Never name a class after a Tailwind utility.** `ring` collided with
+  Tailwind's ring utility and painted a 1px box shadow over the timer; the
+  component is now `progress-ring`.
+- **Respect the window insets.** Android 15 forces edge to edge. MainActivity
+  publishes `--inset-top/bottom/left/right`; use `var(--safe-top)` and friends
+  rather than assuming the viewport is the safe area.
+- **Touch targets are at least 44px.** Where a control must stay visually
+  small, extend the hit area with a transparent `::after` instead of resizing
+  it — except in dense grids, where neighbours would overlap and the cell
+  itself should grow.
+- **Use `Select`, not `<select>`.** The native control renders as an unstyled
+  system dialog on Android.
 
 ## Commands
 

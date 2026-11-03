@@ -494,7 +494,7 @@ function AiSection({ onNotify }: { onNotify: (k: "ok" | "error", t: string) => v
         </div>
       </label>
 
-      <label className="field">
+      <div className="field">
         <span>Model</span>
         <Select
           value={settings.groqModel}
@@ -507,7 +507,7 @@ function AiSection({ onNotify }: { onNotify: (k: "ok" | "error", t: string) => v
           sheetTitle="Groq model"
           placeholder="Choose a model"
         />
-      </label>
+      </div>
 
       <div className="settings-actions">
         <Button

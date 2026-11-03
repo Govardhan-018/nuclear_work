@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react"
 import { Icon } from "../components/Icon"
+import { Select } from "../components/Select"
 import { Button, Card, EmptyState, Modal, PageHeader, SectionTitle, Segmented } from "../components/UI"
 import { Heatmap } from "../components/Visuals"
 import { createEvent, deleteEvent } from "../db/repo"
@@ -20,6 +21,7 @@ const METRICS: Metric[] = [
 ]
 
 const EFFORT_LABELS = ["Rest", "Light", "Moderate", "Strong", "Peak"]
+const EVENT_CATEGORIES = ["Study", "Personal", "Health", "Fitness", "Work"]
 
 export function CalendarPage(_props: PageProps) {
   const [cursor, setCursor] = useState(() => new Date())
@@ -309,11 +311,13 @@ export function CalendarPage(_props: PageProps) {
             title="Your year in motion"
             subtitle={`${fromDayKey(yearDays[0]).toLocaleDateString(undefined, { month: "short", year: "numeric" })} – ${fromDayKey(yearDays[yearDays.length - 1]).toLocaleDateString(undefined, { month: "short", year: "numeric" })}`}
             action={
-              <select value={metric} onChange={(e) => setMetric(e.target.value as Metric)} aria-label="Heatmap metric">
-                {METRICS.map((x) => (
-                  <option key={x}>{x}</option>
-                ))}
-              </select>
+              <Select
+                value={metric}
+                options={METRICS.map((x) => ({ value: x, label: x }))}
+                onChange={(value) => setMetric(value as Metric)}
+                sheetTitle="Heatmap metric"
+                className="compact"
+              />
             }
           />
           <Heatmap cells={heatmapCells} metric={metric.toLowerCase()} />
@@ -389,14 +393,15 @@ function EventModal({ date, onClose }: { date: DayKey; onClose: () => void }) {
             <input type="time" value={endTime} onChange={(e) => setEndTime(e.target.value)} />
           </label>
         </div>
-        <label className="field">
+        <div className="field">
           <span>Category</span>
-          <select value={category} onChange={(e) => setCategory(e.target.value)}>
-            {["Study", "Personal", "Health", "Fitness", "Work"].map((c) => (
-              <option key={c}>{c}</option>
-            ))}
-          </select>
-        </label>
+          <Select
+            value={category}
+            options={EVENT_CATEGORIES.map((c) => ({ value: c, label: c }))}
+            onChange={setCategory}
+            sheetTitle="Category"
+          />
+        </div>
         <label className="field">
           <span>Note</span>
           <input value={note} onChange={(e) => setNote(e.target.value)} placeholder="Optional" />

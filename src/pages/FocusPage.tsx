@@ -298,7 +298,7 @@ export function FocusPage(_props: PageProps) {
 
       <Card className="setup-card">
         <div className="setup-row">
-          <label className="field">
+          <div className="field">
             <span>{sessionType === "Reading" ? "Reading category" : "Subject"}</span>
             <Select
               value={subjectId}
@@ -318,7 +318,7 @@ export function FocusPage(_props: PageProps) {
                 </Button>
               }
             />
-          </label>
+          </div>
           <Button
             variant="icon"
             icon="plus"

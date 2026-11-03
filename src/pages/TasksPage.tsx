@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react"
 import { Icon } from "../components/Icon"
+import { Select } from "../components/Select"
 import { Badge, Button, Card, EmptyState, Modal, PageHeader, Progress, SectionTitle, Segmented } from "../components/UI"
 import { createTask, deleteTask, toggleTask, updateTask } from "../db/repo"
 import { useFocusSessions, useTaskStats } from "../db/stats"
@@ -280,22 +281,24 @@ function TaskModal({ task, onClose }: { task: Task | null; onClose: () => void }
               placeholder="What needs doing?"
             />
           </label>
-          <label className="field">
+          <div className="field">
             <span>Category</span>
-            <select value={category} onChange={(e) => setCategory(e.target.value as TaskCategory)}>
-              {CATEGORIES.map((c) => (
-                <option key={c}>{c}</option>
-              ))}
-            </select>
-          </label>
-          <label className="field">
+            <Select
+              value={category}
+              options={CATEGORIES.map((c) => ({ value: c, label: c }))}
+              onChange={(value) => setCategory(value as TaskCategory)}
+              sheetTitle="Category"
+            />
+          </div>
+          <div className="field">
             <span>Priority</span>
-            <select value={priority} onChange={(e) => setPriority(e.target.value as Priority)}>
-              {PRIORITIES.map((p) => (
-                <option key={p}>{p}</option>
-              ))}
-            </select>
-          </label>
+            <Select
+              value={priority}
+              options={PRIORITIES.map((p) => ({ value: p, label: p }))}
+              onChange={(value) => setPriority(value as Priority)}
+              sheetTitle="Priority"
+            />
+          </div>
           <label className="field full checkbox-field">
             <input type="checkbox" checked={hasDue} onChange={(e) => setHasDue(e.target.checked)} />
             <span>Set a due date</span>
