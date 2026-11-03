@@ -1,5 +1,6 @@
 import { db, newMeta, touch, uid } from "./db"
 import { dayKey, type DayKey } from "../lib/date"
+import { SUBJECT_TONES } from "./types"
 import type {
   Activity,
   AiMessage,
@@ -12,6 +13,7 @@ import type {
   Meal,
   NutritionLog,
   ReadingSession,
+  Subject,
   Task,
 } from "./types"
 
@@ -209,6 +211,76 @@ export async function addReadingSession(
   return id
 }
 
+/* --------------------------------------------------------------- subjects */
+
+export async function createSubject(
+  input: Partial<Subject> & Pick<Subject, "name">,
+): Promise<string> {
+  const id = uid()
+  const kind = input.kind ?? "Academic"
+  const count = await db.subjects.where("kind").equals(kind).count()
+  await db.subjects.add({
+    id,
+    name: input.name.trim(),
+    kind,
+    tone: input.tone ?? SUBJECT_TONES[count % SUBJECT_TONES.length],
+    archived: 0,
+    order: input.order ?? count,
+    ...newMeta(),
+  })
+  return id
+}
+
+export async function updateSubject(
+  id: string,
+  patch: Partial<Subject>,
+): Promise<void> {
+  const next = { ...patch }
+  if (typeof next.name === "string") next.name = next.name.trim()
+  await db.subjects.update(id, { ...next, ...touch() })
+
+  // Sessions keep a denormalised name so old entries stay readable; refresh
+  // it so existing history follows the rename.
+  if (typeof next.name === "string" && next.name) {
+    const sessions = await db.focusSessions.where("subjectId").equals(id).toArray()
+    if (sessions.length > 0) {
+      await db.focusSessions.bulkPut(
+        sessions.map((session) => ({ ...session, subject: next.name as string, ...touch() })),
+      )
+    }
+  }
+}
+
+/**
+ * Soft-deletes a subject. Sessions are deliberately left alone: they keep the
+ * subject name they were recorded with, so deleting a subject never rewrites
+ * history or loses tracked time.
+ */
+export async function deleteSubject(id: string): Promise<void> {
+  await db.subjects.update(id, { deleted: 1, archived: 1, ...touch() })
+}
+
+export async function reorderSubjects(ids: string[]): Promise<void> {
+  const now = Date.now()
+  await db.subjects.bulkUpdate(
+    ids.map((id, index) => ({ key: id, changes: { order: index, updatedAt: now } })),
+  )
+}
+
+/** Creates the starter set on first use of the Focus page. */
+export async function ensureDefaultSubjects(): Promise<void> {
+  const existing = await db.subjects.count()
+  if (existing > 0) return
+  const defaults: Array<[string, Subject["kind"]]> = [
+    ["General Study", "Academic"],
+    ["Research", "Academic"],
+    ["General Reading", "Reading"],
+  ]
+  for (const [name, kind] of defaults) {
+    await createSubject({ name, kind })
+  }
+}
+
 /* ---------------------------------------------------------- focus sessions */
 
 export async function addFocusSession(
@@ -219,6 +291,7 @@ export async function addFocusSession(
   const startedAt = input.startedAt ?? endedAt - input.seconds * 1000
   await db.focusSessions.add({
     id,
+    subjectId: input.subjectId ?? null,
     subject: input.subject,
     type: input.type ?? "Academic",
     mode: input.mode ?? "Timer",
@@ -390,15 +463,15 @@ export async function clearAllData(): Promise<void> {
     "rw",
     [
       db.tasks, db.habits, db.habitLogs, db.books, db.readingSessions,
-      db.focusSessions, db.nutritionLogs, db.meals, db.activities,
+      db.focusSessions, db.subjects, db.nutritionLogs, db.meals, db.activities,
       db.events, db.aiMessages,
     ],
     async () => {
       await Promise.all([
         db.tasks.clear(), db.habits.clear(), db.habitLogs.clear(),
         db.books.clear(), db.readingSessions.clear(), db.focusSessions.clear(),
-        db.nutritionLogs.clear(), db.meals.clear(), db.activities.clear(),
-        db.events.clear(), db.aiMessages.clear(),
+        db.subjects.clear(), db.nutritionLogs.clear(), db.meals.clear(),
+        db.activities.clear(), db.events.clear(), db.aiMessages.clear(),
       ])
     },
   )

@@ -6,7 +6,7 @@ import {
 } from "../lib/date"
 import type {
   Activity, Book, CalendarEvent, FocusSession, Habit, HabitLog, Meal,
-  NutritionLog, ReadingSession, Task,
+  NutritionLog, ReadingSession, Subject, Task,
 } from "./types"
 
 /* -------------------------------------------------------------- live rows */
@@ -22,6 +22,13 @@ export function useHabits(): Habit[] {
 
 export function useHabitLogs(): HabitLog[] {
   return alive(useLiveQuery(() => db.habitLogs.toArray(), [], [] as HabitLog[]))
+}
+
+export function useSubjects(kind?: "Academic" | "Reading"): Subject[] {
+  const rows = alive(useLiveQuery(() => db.subjects.toArray(), [], [] as Subject[]))
+  return rows
+    .filter((row) => row.archived !== 1 && (kind ? row.kind === kind : true))
+    .sort((a, b) => a.order - b.order || a.name.localeCompare(b.name))
 }
 
 export function useBooks(): Book[] {

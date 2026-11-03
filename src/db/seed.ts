@@ -3,7 +3,7 @@ import { addDays, dayKey, startOfDay } from "../lib/date"
 import { setSetting } from "./settings"
 import type {
   Activity, Book, CalendarEvent, FocusSession, Habit, HabitLog, Meal,
-  NutritionLog, ReadingSession, Task,
+  NutritionLog, ReadingSession, Subject, Task,
 } from "./types"
 
 /** Prefix marking a row as generated demo content. */
@@ -25,7 +25,13 @@ function makeRandom(seed: number) {
 
 const DEMO_DAYS = 90
 
-const SUBJECTS = ["Neuroscience", "Statistics", "Writing", "Research"]
+const DEMO_SUBJECTS: Array<[string, "Academic" | "Reading", string]> = [
+  ["Neuroscience", "Academic", "teal"],
+  ["Statistics", "Academic", "blue"],
+  ["Writing", "Academic", "lavender"],
+  ["Research", "Academic", "coral"],
+  ["General Reading", "Reading", "sage"],
+]
 
 const DEMO_HABITS: Omit<Habit, keyof ReturnType<typeof newMeta> | "id">[] = [
   { name: "Morning meditation", icon: "sun", cadence: "Daily", targetPerWeek: 7, tone: "teal", archived: 0, order: 0 },
@@ -50,6 +56,19 @@ export async function seedDemoData(): Promise<void> {
   const random = makeRandom(20260301)
   const now = Date.now()
   const today = startOfDay()
+
+  /* subjects */
+  const subjects: Subject[] = DEMO_SUBJECTS.map(([name, kind, tone], i) => ({
+    id: demoId("subject", i),
+    name,
+    kind,
+    tone: tone as Subject["tone"],
+    archived: 0,
+    order: i,
+    ...newMeta(now),
+  }))
+  const academicSubjects = subjects.filter((s) => s.kind === "Academic")
+  const readingSubjects = subjects.filter((s) => s.kind === "Reading")
 
   /* habits + logs */
   const habits: Habit[] = DEMO_HABITS.map((h, i) => ({ ...h, id: demoId("habit", i), ...newMeta(now) }))
@@ -108,15 +127,18 @@ export async function seedDemoData(): Promise<void> {
       ? (random() < 0.4 ? 1 : 0)
       : Math.floor(random() * 3) + (random() < 0.75 ? 1 : 0)
     for (let i = 0; i < blocks; i++) {
-      const subject = SUBJECTS[Math.floor(random() * SUBJECTS.length)]
+      const type: "Academic" | "Reading" = random() < 0.78 ? "Academic" : "Reading"
+      const pool = type === "Reading" ? readingSubjects : academicSubjects
+      const subject = pool[Math.floor(random() * pool.length)]
       // Weighted toward the 9-11am window so "peak focus hour" is meaningful.
       const hour = random() < 0.5 ? 9 + Math.floor(random() * 2) : 13 + Math.floor(random() * 7)
       const seconds = (20 + Math.floor(random() * 50)) * 60
       const startedAt = date.getTime() + hour * 3600_000 + Math.floor(random() * 1800) * 1000
       focusSessions.push({
         id: demoId("focus", `${back}-${i}`),
-        subject,
-        type: random() < 0.78 ? "Academic" : "Reading",
+        subjectId: subject.id,
+        subject: subject.name,
+        type,
         mode: random() < 0.8 ? "Timer" : "Stopwatch",
         date: dayKey(date),
         startedAt,
@@ -249,8 +271,9 @@ export async function seedDemoData(): Promise<void> {
   await db.transaction(
     "rw",
     [db.tasks, db.habits, db.habitLogs, db.books, db.readingSessions,
-     db.focusSessions, db.nutritionLogs, db.meals, db.activities, db.events],
+     db.focusSessions, db.subjects, db.nutritionLogs, db.meals, db.activities, db.events],
     async () => {
+      await db.subjects.bulkPut(subjects)
       await db.habits.bulkPut(habits)
       await db.habitLogs.bulkPut(habitLogs)
       await db.books.bulkPut(books)
@@ -275,7 +298,7 @@ export async function removeDemoData(): Promise<void> {
   await db.transaction(
     "rw",
     [db.tasks, db.habits, db.habitLogs, db.books, db.readingSessions,
-     db.focusSessions, db.nutritionLogs, db.meals, db.activities, db.events],
+     db.focusSessions, db.subjects, db.nutritionLogs, db.meals, db.activities, db.events],
     async () => {
       const habitIds = await db.habits.filter(isDemo).primaryKeys()
       await db.habits.bulkDelete(habitIds)
@@ -287,7 +310,7 @@ export async function removeDemoData(): Promise<void> {
 
       for (const table of [
         db.tasks, db.books, db.readingSessions, db.focusSessions,
-        db.meals, db.activities, db.events,
+        db.subjects, db.meals, db.activities, db.events,
       ]) {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const ids = await (table as any).filter(isDemo).primaryKeys()

@@ -80,8 +80,31 @@ export type ReadingSession = SyncMeta & {
 
 export type FocusSessionType = "Academic" | "Reading"
 
+/** Palette offered when creating a subject. */
+export const SUBJECT_TONES = [
+  "teal", "blue", "lavender", "coral", "sand", "forest", "sage",
+] as const
+export type SubjectTone = (typeof SUBJECT_TONES)[number]
+
+/**
+ * A study subject or reading category. Sessions reference it by id, and keep
+ * a denormalised `subject` name so history survives a rename or deletion.
+ */
+export type Subject = SyncMeta & {
+  id: string
+  name: string
+  /** Academic subjects and reading categories share the model but not the list. */
+  kind: FocusSessionType
+  tone: SubjectTone
+  archived: 0 | 1
+  order: number
+}
+
 export type FocusSession = SyncMeta & {
   id: string
+  /** Subject id, or null for sessions logged before subjects existed. */
+  subjectId: string | null
+  /** Subject name as it was at the time, so history survives a rename. */
   subject: string
   type: FocusSessionType
   mode: "Timer" | "Stopwatch"
@@ -177,6 +200,25 @@ export type SettingRecord = {
   updatedAt: number
 }
 
+/**
+ * A focus session that is currently running or paused. Persisted so the timer
+ * survives navigating to another tab, and so a session is not silently lost if
+ * Android kills the app in the background.
+ */
+export type ActiveFocusSession = {
+  subjectId: string | null
+  subjectName: string
+  type: FocusSessionType
+  mode: "Timer" | "Stopwatch"
+  targetMinutes: number
+  /** When the session first began, for the saved record. */
+  startedAt: number
+  /** Time banked before the current run segment. */
+  accumulatedMs: number
+  /** Epoch ms the current run began, or null while paused. */
+  runningSince: number | null
+}
+
 /** Everything the Settings page can read and write. */
 export type AppSettings = {
   profileName: string
@@ -195,6 +237,7 @@ export type AppSettings = {
   stravaLastSyncAt: number
   openRouterApiKey: string
   openRouterModel: string
+  activeFocusSession: ActiveFocusSession | null
 }
 
 export const DEFAULT_SETTINGS: AppSettings = {
@@ -214,6 +257,7 @@ export const DEFAULT_SETTINGS: AppSettings = {
   stravaLastSyncAt: 0,
   openRouterApiKey: "",
   openRouterModel: "meta-llama/llama-3.3-70b-instruct:free",
+  activeFocusSession: null,
 }
 
 /** Keys that hold credentials; masked in the UI and excluded from exports. */
