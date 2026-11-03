@@ -2,13 +2,13 @@ import { useMemo, useState } from "react"
 import { Badge, Button, Card, EmptyState, Modal, PageHeader, Progress, SectionTitle, Segmented } from "../components/UI"
 import { Heatmap } from "../components/Visuals"
 import { Select } from "../components/Select"
-import { addReadingSession, createBook, deleteBook, logReadingProgress, updateBook } from "../db/repo"
+import { AddBookSheet } from "../components/BookForm"
+import { addReadingSession, deleteBook, logReadingProgress, updateBook } from "../db/repo"
 import { useReadingStats } from "../db/stats"
 import { dayKey, formatShortDate, lastNDays, startOfMonth } from "../lib/date"
 import type { Book, BookStatus } from "../db/types"
 import type { PageProps } from "./shared"
 
-const ACCENTS = ["sage", "sand", "forest", "cream"]
 const BOOK_STATUSES: BookStatus[] = ["Reading", "Want to read", "Completed"]
 
 export function ReadingPage(_props: PageProps) {
@@ -149,7 +149,7 @@ export function ReadingPage(_props: PageProps) {
       </Card>
 
       {selected && <BookDetail book={selected} onClose={() => setSelectedId(null)} />}
-      {adding && <AddBookModal onClose={() => setAdding(false)} />}
+      {adding && <AddBookSheet onClose={() => setAdding(false)} />}
     </div>
   )
 }
@@ -253,68 +253,6 @@ function BookDetail({ book, onClose }: { book: Book; onClose: () => void }) {
           Save progress
         </Button>
       </div>
-    </Modal>
-  )
-}
-
-function AddBookModal({ onClose }: { onClose: () => void }) {
-  const [title, setTitle] = useState("")
-  const [author, setAuthor] = useState("")
-  const [pages, setPages] = useState("")
-  const [status, setStatus] = useState<BookStatus>("Reading")
-
-  const submit = async () => {
-    if (!title.trim()) return
-    await createBook({
-      title: title.trim(),
-      author: author.trim() || "Unknown",
-      pages: Number(pages) || 0,
-      status,
-      accent: ACCENTS[Math.floor(Math.random() * ACCENTS.length)],
-    })
-    onClose()
-  }
-
-  return (
-    <Modal title="Add book" onClose={onClose}>
-      <form
-        onSubmit={(e) => {
-          e.preventDefault()
-          void submit()
-        }}
-      >
-        <label className="field">
-          <span>Title</span>
-          <input autoFocus value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Four Thousand Weeks" />
-        </label>
-        <label className="field">
-          <span>Author</span>
-          <input value={author} onChange={(e) => setAuthor(e.target.value)} placeholder="Oliver Burkeman" />
-        </label>
-        <div className="field-row">
-          <label className="field">
-            <span>Pages</span>
-            <input type="number" inputMode="numeric" value={pages} onChange={(e) => setPages(e.target.value)} placeholder="288" />
-          </label>
-          <div className="field">
-            <span>Status</span>
-            <Select
-              value={status}
-              options={BOOK_STATUSES.map((s) => ({ value: s, label: s }))}
-              onChange={(value) => setStatus(value as BookStatus)}
-              sheetTitle="Reading status"
-            />
-          </div>
-        </div>
-        <div className="modal-actions">
-          <Button variant="secondary" type="button" onClick={onClose}>
-            Cancel
-          </Button>
-          <Button type="submit" disabled={!title.trim()} icon="plus">
-            Add book
-          </Button>
-        </div>
-      </form>
     </Modal>
   )
 }

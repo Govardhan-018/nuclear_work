@@ -194,6 +194,22 @@ export async function logReadingProgress(
   }
 }
 
+/**
+ * Records pages finished in a sitting. Used when a reading session ends and
+ * the user says how far they got, so the book's progress and the reading
+ * history stay in step.
+ */
+export async function addPagesRead(
+  bookId: string,
+  pagesRead: number,
+  minutes: number,
+): Promise<void> {
+  const book = await db.books.get(bookId)
+  if (!book) return
+  const next = book.currentPage + Math.max(0, Math.round(pagesRead))
+  await logReadingProgress(bookId, next, minutes)
+}
+
 export async function addReadingSession(
   input: Partial<ReadingSession> & Pick<ReadingSession, "minutes">,
 ): Promise<string> {

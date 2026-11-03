@@ -1645,3 +1645,94 @@ html[data-theme="dark"] {
 .day-view .week-event { left: 6px; right: 6px; padding: 6px 10px; }
 
 html[data-theme="dark"] .week-event.fitness { color: #0d1a24; }
+
+/* ==========================================================================
+   Reading in the Focus tab
+   ========================================================================== */
+
+.reading-target,
+.reading-prompt {
+  display: flex;
+  gap: var(--space-4);
+  align-items: center;
+  padding: var(--space-3);
+  border-radius: var(--radius-lg);
+  background: var(--surface-2);
+}
+
+.reading-prompt { margin-bottom: var(--space-4); }
+
+.reading-target > div:last-child,
+.reading-prompt > div:last-child {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.reading-target strong,
+.reading-prompt strong {
+  font-size: var(--text-base);
+  line-height: 1.25;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.reading-target small,
+.reading-prompt small { font-size: var(--text-2xs); color: var(--muted); }
+
+.reading-target .book-cover,
+.reading-prompt .book-cover {
+  width: 54px;
+  height: 78px;
+  flex: 0 0 auto;
+  font-size: 9px;
+}
+
+.quick-pages {
+  display: flex;
+  gap: var(--space-2);
+  margin: calc(var(--space-2) * -1) 0 var(--space-3);
+}
+
+.quick-pages button {
+  flex: 1;
+  min-height: var(--tap-sm);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-pill);
+  background: var(--surface-2);
+  color: var(--ink);
+  font-size: var(--text-sm);
+  font-weight: 600;
+}
+
+.quick-pages button.active {
+  background: var(--teal);
+  border-color: var(--teal);
+  color: #1b2113;
+}
+
+html[data-theme="dark"] .reading-target,
+html[data-theme="dark"] .reading-prompt,
+html[data-theme="dark"] .quick-pages button { background: #282b28; border-color: #3b3e3b; }
+
+/* ==========================================================================
+   Stacking order
+
+   Overlays are portalled to <body>, so they are siblings rather than nested
+   and their paint order is purely z-index. A sheet opened from inside the
+   session screen must sit above it, which did not happen when the sheet was
+   below it in this scale.
+   ========================================================================== */
+
+.topbar { z-index: 40; }
+.mobile-nav { z-index: 50; }
+.drawer-scrim { z-index: 70; }
+.mobile-drawer { z-index: 80; }
+.ai-fullscreen { z-index: 130; }
+.session-overlay { z-index: 140; }
+.modal-backdrop { z-index: 180; }
+.sheet-backdrop { z-index: 200; }

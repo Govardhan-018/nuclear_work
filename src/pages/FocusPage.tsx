@@ -3,15 +3,17 @@ import { Icon } from "../components/Icon"
 import { Button, Card, EmptyState, PageHeader, Progress, SectionTitle, Segmented } from "../components/UI"
 import { BarChart, Heatmap } from "../components/Visuals"
 import { Select, type SelectOption } from "../components/Select"
-import { addFocusSession, deleteFocusSession, ensureDefaultSubjects } from "../db/repo"
+import { addFocusSession, addPagesRead, deleteFocusSession, ensureDefaultSubjects } from "../db/repo"
 import { setSetting, useSettings } from "../db/settings"
-import { useFocusStats, useSubjects } from "../db/stats"
+import { useBooks, useFocusStats, useSubjects } from "../db/stats"
 import {
   dayKey, formatClock, formatDuration, formatDurationShort, formatRelative,
   lastNDays, WEEKDAY_INITIALS,
 } from "../lib/date"
 import type { ActiveFocusSession, FocusSessionType } from "../db/types"
 import { SubjectManager } from "./SubjectManager"
+import { AddBookSheet } from "../components/BookForm"
+import { ReadingPagesPrompt } from "./ReadingPrompt"
 import { FocusSessionOverlay, type SessionView } from "./FocusSession"
 import type { PageProps } from "./shared"
 
@@ -40,6 +42,13 @@ export function FocusPage(_props: PageProps) {
   const hydrated = useRef(false)
 
   const subjects = useSubjects(sessionType)
+  const allBooks = useBooks()
+  /* In reading mode the thing you pick is a book, not a category. */
+  const readable = allBooks.filter((book) => book.status !== "Completed")
+  const reading = sessionType === "Reading"
+  const [bookId, setBookId] = useState<string | null>(null)
+  const [addingBook, setAddingBook] = useState(false)
+  const [pendingRead, setPendingRead] = useState<{ bookId: string; seconds: number } | null>(null)
   const active = runningSince !== null || accumulatedMs > 0
 
   useEffect(() => {
@@ -56,6 +65,7 @@ export function FocusPage(_props: PageProps) {
     setSessionType(stored.type)
     setTargetMinutes(stored.targetMinutes)
     setSubjectId(stored.subjectId)
+    setBookId(stored.bookId ?? null)
     setStartedAt(stored.startedAt)
     setAccumulatedMs(stored.accumulatedMs)
     setRunningSince(stored.runningSince)
@@ -82,6 +92,25 @@ export function FocusPage(_props: PageProps) {
   }, [subjects, subjectId])
 
   const subject = subjects.find((candidate) => candidate.id === subjectId) ?? null
+  const book = readable.find((candidate) => candidate.id === bookId) ?? null
+
+  /* Keep a valid book selected as the shelf changes. */
+  useEffect(() => {
+    if (!reading) return
+    if (readable.length === 0) {
+      setBookId(null)
+      return
+    }
+    if (!readable.some((candidate) => candidate.id === bookId)) {
+      const current = readable.find((candidate) => candidate.status === "Reading")
+      setBookId((current ?? readable[0]).id)
+    }
+  }, [reading, readable, bookId])
+
+  /** What the session is "about": a book when reading, else a subject. */
+  const target = reading
+    ? book && { id: book.id, name: book.title, tone: "sage" }
+    : subject && { id: subject.id, name: subject.name, tone: subject.tone }
 
   /* One interval while running; nothing is scheduled when idle. */
   useEffect(() => {
@@ -112,8 +141,9 @@ export function FocusPage(_props: PageProps) {
       saving.current = true
       try {
         await addFocusSession({
-          subjectId: subject?.id ?? null,
-          subject: subject?.name ?? "Focus",
+          subjectId: reading ? null : subject?.id ?? null,
+          bookId: reading ? book?.id ?? null : null,
+          subject: target?.name ?? "Focus",
           type: sessionType,
           mode,
           seconds,
@@ -125,7 +155,7 @@ export function FocusPage(_props: PageProps) {
         saving.current = false
       }
     },
-    [subject, sessionType, mode, startedAt],
+    [target, reading, subject, book, sessionType, mode, startedAt],
   )
 
   const reset = useCallback(() => {
@@ -146,15 +176,17 @@ export function FocusPage(_props: PageProps) {
     setOverlayOpen(true)
     persist(null)
     void save(targetSeconds, true)
+    if (reading && book) setPendingRead({ bookId: book.id, seconds: targetSeconds })
     if (typeof navigator !== "undefined" && "vibrate" in navigator) {
       navigator.vibrate?.([130, 70, 130])
     }
-  }, [mode, runningSince, remaining, targetSeconds, finished, save, persist])
+  }, [mode, runningSince, remaining, targetSeconds, finished, save, persist, reading, book])
 
   const snapshot = useCallback(
     (overrides: Partial<ActiveFocusSession>): ActiveFocusSession => ({
-      subjectId: subject?.id ?? null,
-      subjectName: subject?.name ?? "Focus",
+      subjectId: reading ? null : subject?.id ?? null,
+      subjectName: target?.name ?? "Focus",
+      bookId: reading ? book?.id ?? null : null,
       type: sessionType,
       mode,
       targetMinutes,
@@ -163,12 +195,13 @@ export function FocusPage(_props: PageProps) {
       runningSince,
       ...overrides,
     }),
-    [subject, sessionType, mode, targetMinutes, startedAt, accumulatedMs, runningSince],
+    [target, reading, subject, book, sessionType, mode, targetMinutes, startedAt, accumulatedMs, runningSince],
   )
 
   const start = () => {
-    if (!subject) {
-      setManagingSubjects(true)
+    if (!target) {
+      if (reading) setAddingBook(true)
+      else setManagingSubjects(true)
       return
     }
     const now = Date.now()
@@ -200,6 +233,12 @@ export function FocusPage(_props: PageProps) {
     )
     setRunningSince(null)
     await save(seconds, false)
+    // Ask how far they got before clearing, so the book can be updated.
+    if (reading && book && seconds >= MIN_SAVED_SECONDS) {
+      setPendingRead({ bookId: book.id, seconds })
+      setOverlayOpen(false)
+      return
+    }
     reset()
   }
 
@@ -220,6 +259,15 @@ export function FocusPage(_props: PageProps) {
     tone: entry.tone,
   }))
 
+  const bookOptions: SelectOption[] = readable.map((entry) => ({
+    value: entry.id,
+    label: entry.title,
+    hint:
+      entry.pages > 0
+        ? `${entry.author} · page ${entry.currentPage} of ${entry.pages}`
+        : entry.author,
+  }))
+
   const progress =
     mode === "Timer"
       ? targetSeconds > 0 ? Math.min(100, (elapsedSeconds / targetSeconds) * 100) : 0
@@ -228,8 +276,8 @@ export function FocusPage(_props: PageProps) {
   const view: SessionView = {
     mode,
     type: sessionType,
-    subject: subject?.name ?? "Focus",
-    tone: subject?.tone ?? "teal",
+    subject: target?.name ?? "Focus",
+    tone: target?.tone ?? "teal",
     display: mode === "Timer" ? remaining : elapsedSeconds,
     progress,
     elapsed: elapsedSeconds,
@@ -290,7 +338,7 @@ export function FocusPage(_props: PageProps) {
               {runningSince !== null ? "Session running" : "Session paused"} ·{" "}
               {formatClock(view.display)}
             </strong>
-            <small>{subject?.name ?? "Focus"}</small>
+            <small>{target?.name ?? "Focus"}</small>
           </span>
           <Icon name="chevronRight" size={18} />
         </button>
@@ -299,33 +347,68 @@ export function FocusPage(_props: PageProps) {
       <Card className="setup-card">
         <div className="setup-row">
           <div className="field">
-            <span>{sessionType === "Reading" ? "Reading category" : "Subject"}</span>
+            <span>{reading ? "Book" : "Subject"}</span>
             <Select
-              value={subjectId}
-              options={subjectOptions}
-              onChange={setSubjectId}
-              placeholder={subjects.length === 0 ? "Create one first" : "Choose…"}
-              sheetTitle={sessionType === "Reading" ? "Reading category" : "Study subject"}
+              value={reading ? bookId : subjectId}
+              options={reading ? bookOptions : subjectOptions}
+              onChange={reading ? setBookId : setSubjectId}
+              placeholder={
+                reading
+                  ? readable.length === 0 ? "Add a book first" : "Choose a book…"
+                  : subjects.length === 0 ? "Create one first" : "Choose…"
+              }
+              sheetTitle={reading ? "What are you reading?" : "Study subject"}
               disabled={active}
               footer={
-                <Button
-                  variant="secondary"
-                  icon="settings"
-                  className="wide"
-                  onClick={() => setManagingSubjects(true)}
-                >
-                  Manage {sessionType === "Reading" ? "categories" : "subjects"}
-                </Button>
+                reading ? (
+                  <Button
+                    variant="secondary"
+                    icon="plus"
+                    className="wide"
+                    onClick={() => setAddingBook(true)}
+                  >
+                    Add a book
+                  </Button>
+                ) : (
+                  <Button
+                    variant="secondary"
+                    icon="settings"
+                    className="wide"
+                    onClick={() => setManagingSubjects(true)}
+                  >
+                    Manage subjects
+                  </Button>
+                )
               }
             />
           </div>
           <Button
             variant="icon"
             icon="plus"
-            aria-label={`Manage ${sessionType === "Reading" ? "categories" : "subjects"}`}
-            onClick={() => setManagingSubjects(true)}
+            aria-label={reading ? "Add a book" : "Manage subjects"}
+            onClick={() => (reading ? setAddingBook(true) : setManagingSubjects(true))}
           />
         </div>
+
+        {reading && book && (
+          <div className="reading-target">
+            <div className={`book-cover ${book.accent}`}>
+              <span>{book.cover}</span>
+            </div>
+            <div>
+              <strong>{book.title}</strong>
+              <small>{book.author}</small>
+              <Progress
+                value={book.pages > 0 ? (book.currentPage / book.pages) * 100 : 0}
+              />
+              <small>
+                {book.pages > 0
+                  ? `page ${book.currentPage} of ${book.pages}`
+                  : `page ${book.currentPage}`}
+              </small>
+            </div>
+          </div>
+        )}
 
         {mode === "Timer" && (
           <div className="field">
@@ -350,8 +433,8 @@ export function FocusPage(_props: PageProps) {
             {mode === "Timer" ? formatClock(targetSeconds) : "00:00"}
           </span>
           <small>
-            {subjects.length === 0
-              ? `Create a ${sessionType === "Reading" ? "category" : "subject"} to begin`
+            {(reading ? readable.length === 0 : subjects.length === 0)
+              ? reading ? "Add a book to begin" : "Create a subject to begin"
               : mode === "Timer"
                 ? `${targetMinutes} minute ${sessionType.toLowerCase()} block`
                 : `Open-ended ${sessionType.toLowerCase()} session`}
@@ -462,6 +545,42 @@ export function FocusPage(_props: PageProps) {
           </p>
         </Card>
       </div>
+
+      {addingBook && (
+        <AddBookSheet
+          onClose={() => setAddingBook(false)}
+          onCreated={(id) => setBookId(id)}
+        />
+      )}
+
+      {pendingRead && (() => {
+        const target = allBooks.find((entry) => entry.id === pendingRead.bookId)
+        if (!target) {
+          setPendingRead(null)
+          return null
+        }
+        const done = () => {
+          setPendingRead(null)
+          reset()
+        }
+        return (
+          <ReadingPagesPrompt
+            book={target}
+            seconds={pendingRead.seconds}
+            onSkip={done}
+            onSubmit={async (pages) => {
+              if (pages > 0) {
+                await addPagesRead(
+                  pendingRead.bookId,
+                  pages,
+                  Math.round(pendingRead.seconds / 60),
+                )
+              }
+              done()
+            }}
+          />
+        )
+      })()}
 
       {managingSubjects && (
         <SubjectManager

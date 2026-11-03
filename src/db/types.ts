@@ -104,6 +104,11 @@ export type FocusSession = SyncMeta & {
   id: string
   /** Subject id, or null for sessions logged before subjects existed. */
   subjectId: string | null
+  /**
+   * Book a reading session was spent on. Optional because sessions recorded
+   * before reading was book-aware have no value.
+   */
+  bookId?: string | null
   /** Subject name as it was at the time, so history survives a rename. */
   subject: string
   type: FocusSessionType
@@ -208,6 +213,8 @@ export type SettingRecord = {
 export type ActiveFocusSession = {
   subjectId: string | null
   subjectName: string
+  /** Set for reading sessions, so ending one can update the book. */
+  bookId?: string | null
   type: FocusSessionType
   mode: "Timer" | "Stopwatch"
   targetMinutes: number
