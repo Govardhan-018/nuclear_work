@@ -104,11 +104,12 @@ export async function exchangeCodeForToken(code: string): Promise<void> {
   if (!s.stravaClientId || !s.stravaClientSecret) {
     throw new Error("Add your Strava Client ID and Client Secret first.")
   }
+  // Strava documents this endpoint with query parameters rather than a body,
+  // and that is the form it accepts most reliably.
   const response = await http<StravaTokenResponse>({
     url: TOKEN_URL,
     method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: {
+    params: {
       client_id: s.stravaClientId,
       client_secret: s.stravaClientSecret,
       code,
@@ -142,8 +143,7 @@ async function getAccessToken(): Promise<string> {
   const response = await http<StravaTokenResponse>({
     url: TOKEN_URL,
     method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: {
+    params: {
       client_id: s.stravaClientId,
       client_secret: s.stravaClientSecret,
       grant_type: "refresh_token",
