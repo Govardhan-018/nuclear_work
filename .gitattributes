@@ -113,6 +113,15 @@
 *.stl                filter=lfs diff=lfs merge=lfs -text
 *.nc                 filter=lfs diff=lfs merge=lfs -text
 *.mat                filter=lfs diff=lfs merge=lfs -text
+# Overrides: small build inputs must be ordinary git objects
+# These are app icons, splash images, self-hosted fonts and the Gradle wrapper.
+# They total around a megabyte, they are inputs the Android build and CI need
+# as real files, and LFS is not available for this repository.
+assets/*.png                      -filter -diff -merge -text
+public/icons/*.png                -filter -diff -merge -text
+public/fonts/*.woff2              -filter -diff -merge -text
+android/**/*.png                  -filter -diff -merge -text
+android/gradle/wrapper/*.jar      -filter -diff -merge -text
 *.png !text !filter !merge !diff
 *.woff2 !text !filter !merge !diff
 *.jar !text !filter !merge !diff
