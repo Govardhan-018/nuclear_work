@@ -433,43 +433,68 @@ function WeekDayView({
     return Array.from({ length: 7 }, (_, i) => addDays(start, i))
   }, [view, anchor])
 
+  // The grid used to assume seven columns, so Day view rendered one narrow
+  // column and six empty ones. Drive it from the number of days instead.
+  const columns = { gridTemplateColumns: `repeat(${days.length}, minmax(0, 1fr))` }
+
+  // Hours drawn down the left edge, so a column reads as a timetable.
+  const START_HOUR = 6
+  const END_HOUR = 23
+  const SPAN = (END_HOUR - START_HOUR) * 60
+  const hours = Array.from({ length: END_HOUR - START_HOUR + 1 }, (_, i) => START_HOUR + i)
+
   return (
-    <div className="week-view">
-      <div className="week-head">
+    <div className={`week-view ${view === "Day" ? "day-view" : ""}`}>
+      <div className="week-head" style={columns}>
         {days.map((date) => (
           <strong key={dayKey(date)}>
             {view === "Day"
-              ? date.toLocaleDateString(undefined, { weekday: "long", day: "numeric" })
+              ? date.toLocaleDateString(undefined, { weekday: "long", day: "numeric", month: "short" })
               : `${date.toLocaleDateString(undefined, { weekday: "short" })} ${date.getDate()}`}
           </strong>
         ))}
       </div>
-      <div className="week-body">
-        {days.map((date) => {
-          const key = dayKey(date)
-          const dayEvents = events.filter((e) => e.date === key)
-          return (
-            <div key={key} onClick={() => onSelectDay(key)}>
-              {dayEvents.map((event) => {
-                // Position events between 06:00 and 23:00 of the column height.
-                const minutes = toMinutes(event.startTime)
-                const top = Math.max(0, Math.min(92, ((minutes - 360) / (17 * 60)) * 100))
-                return (
-                  <span
-                    key={event.id}
-                    className={`week-event ${event.category.toLowerCase() === "fitness" ? "fitness" : "study"}`}
-                    style={{ top: `${top}%` }}
-                  >
-                    {event.title}
-                    <br />
-                    <small>{event.startTime}</small>
-                  </span>
-                )
-              })}
-              {dayEvents.length === 0 && <span className="week-empty">—</span>}
-            </div>
-          )
-        })}
+
+      <div className="week-scroll">
+        <div className="week-hours" aria-hidden="true">
+          {hours.map((hour) => (
+            <span key={hour}>{String(hour).padStart(2, "0")}:00</span>
+          ))}
+        </div>
+
+        <div className="week-body" style={columns}>
+          {days.map((date) => {
+            const key = dayKey(date)
+            const dayEvents = events
+              .filter((e) => e.date === key)
+              .sort((a, b) => a.startTime.localeCompare(b.startTime))
+            return (
+              <div key={key} onClick={() => onSelectDay(key)}>
+                {dayEvents.map((event) => {
+                  const start = toMinutes(event.startTime)
+                  const end = Math.max(start + 30, toMinutes(event.endTime))
+                  const top = ((start - START_HOUR * 60) / SPAN) * 100
+                  const height = ((end - start) / SPAN) * 100
+                  return (
+                    <span
+                      key={event.id}
+                      className={`week-event ${event.category.toLowerCase() === "fitness" ? "fitness" : "study"}`}
+                      style={{
+                        top: `${Math.max(0, Math.min(97, top))}%`,
+                        height: `${Math.max(5, Math.min(100 - top, height))}%`,
+                      }}
+                      title={`${event.title} · ${event.startTime}–${event.endTime}`}
+                    >
+                      <strong>{event.title}</strong>
+                      <small>{event.startTime}</small>
+                    </span>
+                  )
+                })}
+                {dayEvents.length === 0 && <span className="week-empty">No events</span>}
+              </div>
+            )
+          })}
+        </div>
       </div>
     </div>
   )

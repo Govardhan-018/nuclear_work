@@ -1,4 +1,5 @@
 import type { ButtonHTMLAttributes, ReactNode } from "react"
+import { createPortal } from "react-dom"
 import { Icon } from "./Icon"
 
 export function Button({
@@ -138,7 +139,9 @@ export function Modal({
   children: ReactNode
   onClose: () => void
 }) {
-  return (
+  // Portalled for the same reason as BottomSheet: an ancestor transform would
+  // otherwise capture position: fixed and crop the dialog.
+  return createPortal(
     <div className="modal-backdrop" role="presentation" onMouseDown={onClose}>
       <div
         className="modal"
@@ -158,7 +161,8 @@ export function Modal({
         </div>
         {children}
       </div>
-    </div>
+    </div>,
+    document.body,
   )
 }
 

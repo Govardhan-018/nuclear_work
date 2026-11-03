@@ -1,4 +1,5 @@
 import { useEffect, type ReactNode } from "react"
+import { createPortal } from "react-dom"
 import { Icon } from "./Icon"
 
 /**
@@ -31,7 +32,13 @@ export function BottomSheet({
     }
   }, [onClose])
 
-  return (
+  /*
+   * Rendered into <body>. A sheet opened from inside a card would otherwise be
+   * positioned against that card: any ancestor with a transform (including a
+   * filling CSS animation) becomes the containing block for position: fixed,
+   * which cropped the sheet to the card's bounds.
+   */
+  return createPortal(
     <div className="sheet-backdrop" role="presentation" onMouseDown={onClose}>
       <div
         className="sheet"
@@ -53,6 +60,7 @@ export function BottomSheet({
         <div className="sheet-body">{children}</div>
         {footer && <div className="sheet-footer">{footer}</div>}
       </div>
-    </div>
+    </div>,
+    document.body,
   )
 }
