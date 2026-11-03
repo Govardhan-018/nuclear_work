@@ -984,9 +984,6 @@ html[data-theme="dark"] .multi-tooltip strong { color:#1c2116; }
 }
 
 /* One-time nutrition history */
-.food-page>.health-flow,
-.food-page>.food-grid,
-.food-page>.food-lower { display:none; }
 .nutrition-layout { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
 .locked-entry { display:inline-flex; align-items:center; gap:5px; padding:6px 9px; border-radius:999px; background:var(--teal-soft); color:var(--teal-dark); font-size:8px; font-weight:700; }
 .nutrition-questions { display:grid; gap:0; }
@@ -1483,3 +1480,19 @@ html[data-theme="dark"] .badge-down { background:#303330; color:#b4b8b3; }
 .portion-picker button,
 .energy-check button { display:inline-flex; align-items:center; justify-content:center; gap:6px; }
 .answer-pills { flex-wrap:wrap; }
+
+/* The tree is decoration layered over the timer card; letting it take pointer
+   events made the duration presets underneath it unclickable. */
+.tree-scene { pointer-events:none; }
+.duration-picker { position:relative; z-index:2; }
+
+/* The demo hid these toggles at phone width because the views behind them
+   were placeholders. Both now work, and this is a phone-first app, so they
+   stack under the tabs instead of being dropped. */
+@media (max-width:480px) {
+  .task-controls { flex-direction:column; align-items:stretch; }
+  .task-controls > .segmented,
+  .calendar-page .segmented { display:inline-flex; align-self:flex-start; }
+  .calendar-page .header-actions { flex-direction:column; align-items:stretch; gap:10px; }
+  .calendar-page .header-actions .segmented { align-self:flex-start; }
+}

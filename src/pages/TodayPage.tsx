@@ -268,7 +268,7 @@ export function TodayPage({ onNavigate, onQuickAdd }: PageProps) {
   }, [focusSessions, activities, habitLogs, readingSessions])
 
   const pillars: Array<[string, number, string]> = [
-    ["Movement", Math.min(100, Math.round((activeMinutes / 30) * 100)), distanceKm > 0 ? `${distanceKm.toFixed(1)} km` : `${activeMinutes}m`],
+    ["Movement", Math.min(100, Math.round((activeMinutes / 30) * 100)), distanceKm > 0 ? `${distanceKm.toFixed(1)} km` : `${activeMinutes} min`],
     ["Study", focusTargetSeconds > 0 ? Math.min(100, Math.round((focusSeconds / focusTargetSeconds) * 100)) : 0, formatDurationShort(focusSeconds)],
     ["Nutrition", nutrition ?? 0, nutrition === null ? "Not logged" : `${nutrition}%`],
     ["Habits", habits.length > 0 ? Math.round((habitsDone / habits.length) * 100) : 0, `${habitsDone}/${habits.length}`],
@@ -340,7 +340,7 @@ export function TodayPage({ onNavigate, onQuickAdd }: PageProps) {
 
       <div className="today-metrics">
         {[
-          ["fitness", distanceKm > 0 ? `${distanceKm.toFixed(1)} km` : `${activeMinutes}m`, "Movement", dayActivities.length > 0 ? `${dayActivities.length} activity${dayActivities.length === 1 ? "" : "s"}` : "None yet"],
+          ["fitness", distanceKm > 0 ? `${distanceKm.toFixed(1)} km` : `${activeMinutes} min`, "Movement", dayActivities.length > 0 ? `${dayActivities.length} ${dayActivities.length === 1 ? "activity" : "activities"}` : "None yet"],
           ["focus", formatDurationShort(focusSeconds), "Study", `${pillars[1][1]}% of goal`],
           ["food", nutrition === null ? "--" : `${nutrition}%`, "Nutrition", dayNutrition ? "Logged" : "Not logged"],
           ["book", `${readingMinutes}m`, "Reading", `${sumBy(dayReading, (s) => s.pagesRead)} pages`],

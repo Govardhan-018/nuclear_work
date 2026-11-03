@@ -236,7 +236,9 @@ function TaskModal({ task, onClose }: { task: Task | null; onClose: () => void }
   const [notes, setNotes] = useState(task?.notes ?? "")
   const [category, setCategory] = useState<TaskCategory>(task?.category ?? "Personal")
   const [priority, setPriority] = useState<Priority>(task?.priority ?? "Medium")
-  const [hasDue, setHasDue] = useState(task?.dueAt !== null && task?.dueAt !== undefined)
+  // New tasks default to a due date of today. Without one they land in
+  // "Someday" and disappear from the Today tab the user just added them from.
+  const [hasDue, setHasDue] = useState(task ? task.dueAt !== null : true)
   const [dueDate, setDueDate] = useState(
     task?.dueAt ? dayKey(task.dueAt) : dayKey(),
   )
