@@ -986,3 +986,125 @@ html[data-theme="dark"] .tone-picker .swatch.active { border-color: var(--teal);
   color: inherit;
   justify-content: stretch;
 }
+
+/* ==========================================================================
+   AI coach
+   ========================================================================== */
+
+.ai-suggestions { display: grid; gap: var(--space-3); }
+
+.suggestion-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.suggestion-chips button {
+  min-height: var(--tap-sm);
+  padding: 0 var(--space-4);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-pill);
+  background: var(--surface-2);
+  color: var(--ink);
+  font-size: var(--text-sm);
+  text-align: left;
+  transition: background-color var(--dur-fast) var(--ease-out),
+              border-color var(--dur-fast) var(--ease-out);
+}
+
+.suggestion-chips button:not(:disabled):active {
+  background: var(--teal-soft);
+  border-color: var(--teal);
+}
+
+.suggestion-chips button:disabled { opacity: .5; }
+
+.ai-messages {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-2) 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.ai-messages > div {
+  max-width: 86%;
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-lg);
+  font-size: var(--text-base);
+  line-height: 1.55;
+  white-space: pre-wrap;
+  animation: msg-in var(--dur-mid) var(--ease-out);
+}
+
+@keyframes msg-in {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: none; }
+}
+
+.ai-messages .user {
+  align-self: flex-end;
+  background: var(--teal);
+  color: #1b2113;
+  border-bottom-right-radius: var(--radius-sm);
+}
+
+.ai-messages .assistant {
+  align-self: flex-start;
+  background: var(--surface-2);
+  color: var(--ink);
+  border-bottom-left-radius: var(--radius-sm);
+}
+
+.ai-messages .assistant.failed {
+  background: #fbeeea;
+  color: #b4503c;
+  border-left: 2px solid #d08f7f;
+}
+
+.ai-messages .thinking {
+  display: flex;
+  gap: 5px;
+  align-items: center;
+  min-height: 42px;
+}
+
+.ai-messages .thinking i {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--muted);
+  animation: typing 1.3s ease-in-out infinite;
+}
+
+.ai-messages .thinking i:nth-child(2) { animation-delay: .18s; }
+.ai-messages .thinking i:nth-child(3) { animation-delay: .36s; }
+
+@keyframes typing {
+  0%, 60%, 100% { opacity: .3; transform: translateY(0); }
+  30% { opacity: 1; transform: translateY(-3px); }
+}
+
+.ai-question {
+  display: flex;
+  gap: var(--space-2);
+  align-items: flex-end;
+  padding-top: var(--space-3);
+}
+
+.ai-question input {
+  flex: 1;
+  min-width: 0;
+  min-height: var(--control-h);
+  padding: 0 var(--space-4);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-pill);
+  background: var(--surface-2);
+  color: var(--ink);
+}
+
+.ai-question .button { min-height: var(--control-h); }
+
+html[data-theme="dark"] .suggestion-chips button { background: #282b28; border-color: #3b3e3b; }
+html[data-theme="dark"] .ai-messages .assistant { background: #282b28; }

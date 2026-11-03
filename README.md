@@ -10,8 +10,8 @@ keys in Settings.
 - **Local-first.** All data lives in IndexedDB inside the app's private
   storage. No account, no server, no subscription.
 - **Strava import.** Pulls your activities in and keeps them.
-- **AI coach.** Optional, runs on OpenRouter free models, and is only ever
-  sent a summary of data you have logged yourself.
+- **AI coach.** Optional, runs on Groq, and is only ever sent a summary of
+  data you have logged yourself.
 - **Backups.** Export and import a JSON file at any time.
 
 ---
@@ -76,14 +76,27 @@ incremental, so it only fetches activities since the last run.
 
 ## Setting up the AI coach
 
-1. Create a free account at <https://openrouter.ai> and generate a key at
-   <https://openrouter.ai/keys>.
+1. Create a free account at <https://console.groq.com> and generate a key at
+   <https://console.groq.com/keys>.
 2. In the app, go to **Settings → AI coach** and paste the key in.
-3. Tap **Refresh free models** to pull the current list of models that cost
-   nothing, pick one, then **Test key** to confirm it works.
+3. Tap **Refresh models** to pull the list available on your account, pick one,
+   then **Test key** to confirm it works.
 
-Models whose id ends in `:free` cost nothing but are rate limited and can be
-busy. If one starts failing, pick another from the list.
+Groq's free tier is generous but rate limited per minute. If a model starts
+returning errors, wait a moment or pick a smaller one such as
+`llama-3.1-8b-instant`.
+
+### A note on where the key lives
+
+This app has no server. The key you enter is stored on the device, in the
+app's private storage, and the request goes straight from your phone to Groq.
+That is a consequence of the app being standalone and offline-first; there is
+no backend to proxy through and keep the key off the device.
+
+You can instead compile a key in at build time with `VITE_GROQ_API_KEY` (see
+`.env.example`), but that key ships inside the APK and can be extracted from
+it, so it is no more private. The in-app setting is preferred and overrides
+the build-time value. Keys are excluded from exported backups either way.
 
 The coach card on the Today page and the four analysis cards behind **More**
 are computed on your device and work with no key and no connection. Only the
@@ -182,7 +195,7 @@ it just skips the signed build.
 ```
 src/
   db/          Dexie schema, repositories, derived statistics, demo seed
-  services/    Strava, OpenRouter, HTTP, backup
+  services/    Strava, Groq, HTTP, backup
   pages/       One file per screen
   components/  Icons, primitives, charts
   lib/         Dates, polyline decoding

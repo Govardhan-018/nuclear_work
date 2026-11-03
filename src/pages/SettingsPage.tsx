@@ -9,7 +9,10 @@ import {
   beginStravaAuth, callbackDomain, disconnectStrava, exchangeCodeForToken,
   extractAuthCode, redirectUri, syncStravaActivities,
 } from "../services/strava"
-import { FALLBACK_FREE_MODELS, fetchFreeModels, testApiKey } from "../services/openrouter"
+import {
+  FALLBACK_MODELS, fetchModels, hasBuildTimeKey, prettyModelName, resolveApiKey, testApiKey,
+} from "../services/groq"
+import { Select, type SelectOption } from "../components/Select"
 import { isNative, isOnline, platformName } from "../services/platform"
 import { formatRelative } from "../lib/date"
 import { useActivities, useBooks, useFocusSessions, useHabits, useTasks } from "../db/stats"
@@ -395,24 +398,26 @@ function StravaSection({ onNotify }: { onNotify: (k: "ok" | "error", t: string) 
 
 function AiSection({ onNotify }: { onNotify: (k: "ok" | "error", t: string) => void }) {
   const settings = useSettings()
-  const [apiKey, setApiKey] = useState(settings.openRouterApiKey)
+  const [apiKey, setApiKey] = useState(settings.groqApiKey)
   const [showKey, setShowKey] = useState(false)
-  const [models, setModels] = useState(FALLBACK_FREE_MODELS)
+  const [models, setModels] = useState(FALLBACK_MODELS)
   const [busy, setBusy] = useState<string | null>(null)
 
-  useEffect(() => setApiKey(settings.openRouterApiKey), [settings.openRouterApiKey])
+  useEffect(() => setApiKey(settings.groqApiKey), [settings.groqApiKey])
 
   const saveKey = async () => {
-    await setSetting("openRouterApiKey", apiKey.trim())
+    await setSetting("groqApiKey", apiKey.trim())
   }
 
   const refreshModels = async () => {
     setBusy("models")
     try {
       await saveKey()
-      const list = await fetchFreeModels(apiKey.trim())
+      const key = apiKey.trim() || (hasBuildTimeKey() ? await resolveApiKey() : "")
+      if (!key) throw new Error("Add a key first.")
+      const list = await fetchModels(key)
       setModels(list)
-      onNotify("ok", `Found ${list.length} free models.`)
+      onNotify("ok", `Found ${list.length} models on your account.`)
     } catch (error) {
       onNotify("error", error instanceof Error ? error.message : "Could not load models.")
     } finally {
@@ -424,7 +429,8 @@ function AiSection({ onNotify }: { onNotify: (k: "ok" | "error", t: string) => v
     setBusy("test")
     try {
       await saveKey()
-      await testApiKey(apiKey.trim(), settings.openRouterModel)
+      const key = await resolveApiKey()
+      await testApiKey(key, settings.groqModel)
       onNotify("ok", "The model replied. Your key works.")
     } catch (error) {
       onNotify("error", error instanceof Error ? error.message : "The test failed.")
@@ -433,16 +439,22 @@ function AiSection({ onNotify }: { onNotify: (k: "ok" | "error", t: string) => v
     }
   }
 
-  const known = models.some((m) => m.id === settings.openRouterModel)
+  const configured = settings.groqApiKey.trim().length > 0 || hasBuildTimeKey()
+  const options: SelectOption[] = models.map((model) => ({
+    value: model.id,
+    label: model.name,
+    hint: model.id,
+  }))
+  const known = models.some((model) => model.id === settings.groqModel)
 
   return (
     <Card className="settings-card">
       <SectionTitle
         title="AI coach"
-        subtitle="Powered by OpenRouter free models. Optional and online only."
+        subtitle="Powered by Groq. Optional, and the only feature that needs a connection."
         action={
-          <Badge tone={settings.openRouterApiKey ? "sage" : "neutral"}>
-            {settings.openRouterApiKey ? "Key set" : "No key"}
+          <Badge tone={configured ? "sage" : "neutral"}>
+            {configured ? "Key set" : "No key"}
           </Badge>
         }
       />
@@ -451,24 +463,28 @@ function AiSection({ onNotify }: { onNotify: (k: "ok" | "error", t: string) => v
         <Icon name="info" size={16} />
         <div>
           <p>
-            Create a free key at <strong>openrouter.ai/keys</strong>. Models ending in{" "}
-            <code>:free</code> cost nothing but are rate limited.
+            Create a free key at <strong>console.groq.com/keys</strong>. The free tier is
+            generous but rate limited per minute.
           </p>
           <p>
-            The coach is sent a summary of your logged data. Nothing is sent anywhere until you
-            ask it a question.
+            The coach is sent a summary of your logged data. Nothing leaves the device
+            until you ask it a question.
           </p>
+          {hasBuildTimeKey() && (
+            <p>A key was built into this app; anything entered here overrides it.</p>
+          )}
         </div>
       </div>
 
       <label className="field">
-        <span>OpenRouter API key</span>
+        <span>Groq API key</span>
         <div className="input-with-action">
           <input
             type={showKey ? "text" : "password"}
             value={apiKey}
-            placeholder="sk-or-v1-…"
+            placeholder="gsk_…"
             autoComplete="off"
+            spellCheck={false}
             onChange={(e) => setApiKey(e.target.value)}
             onBlur={() => void saveKey()}
           />
@@ -480,27 +496,16 @@ function AiSection({ onNotify }: { onNotify: (k: "ok" | "error", t: string) => v
 
       <label className="field">
         <span>Model</span>
-        <select
-          value={known ? settings.openRouterModel : "__custom"}
-          onChange={(e) => {
-            if (e.target.value !== "__custom") void setSetting("openRouterModel", e.target.value)
-          }}
-        >
-          {models.map((m) => (
-            <option key={m.id} value={m.id}>
-              {m.name}
-            </option>
-          ))}
-          {!known && <option value="__custom">{settings.openRouterModel} (custom)</option>}
-        </select>
-      </label>
-
-      <label className="field">
-        <span>Or enter a model id by hand</span>
-        <input
-          value={settings.openRouterModel}
-          onChange={(e) => void setSetting("openRouterModel", e.target.value)}
-          placeholder="meta-llama/llama-3.3-70b-instruct:free"
+        <Select
+          value={settings.groqModel}
+          options={
+            known
+              ? options
+              : [...options, { value: settings.groqModel, label: prettyModelName(settings.groqModel), hint: "custom" }]
+          }
+          onChange={(value) => void setSetting("groqModel", value)}
+          sheetTitle="Groq model"
+          placeholder="Choose a model"
         />
       </label>
 
@@ -511,11 +516,11 @@ function AiSection({ onNotify }: { onNotify: (k: "ok" | "error", t: string) => v
           disabled={busy !== null}
           onClick={() => void refreshModels()}
         >
-          {busy === "models" ? "Loading…" : "Refresh free models"}
+          {busy === "models" ? "Loading…" : "Refresh models"}
         </Button>
         <Button
           icon="sparkle"
-          disabled={!apiKey.trim() || busy !== null}
+          disabled={!configured || busy !== null}
           onClick={() => void test()}
         >
           {busy === "test" ? "Testing…" : "Test key"}
@@ -690,7 +695,7 @@ function DataSection({ onNotify }: { onNotify: (k: "ok" | "error", t: string) =>
       {confirmClear && (
         <Modal title="Clear everything?" onClose={() => setConfirmClear(false)}>
           <p className="modal-intro">
-            This permanently deletes every record on this device. Your Strava and OpenRouter keys
+            This permanently deletes every record on this device. Your Strava and Groq keys
             are kept so you do not have to re-enter them. This cannot be undone.
           </p>
           <div className="modal-actions">

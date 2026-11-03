@@ -4,7 +4,7 @@ import {
   nutritionScore, streakFromDays, sumBy,
 } from "../db/stats"
 import { addDays, dayKey, formatDuration, lastNDays } from "../lib/date"
-import { chatCompletion, type ChatMessage } from "./openrouter"
+import { chatCompletion, type ChatMessage } from "./groq"
 
 const SYSTEM_PROMPT = `You are the coach inside Life OS, a personal tracking app for study, reading, nutrition, habits and fitness.
 

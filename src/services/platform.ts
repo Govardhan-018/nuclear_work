@@ -38,7 +38,7 @@ function buildUrl(url: string, params?: Record<string, string>): string {
  *
  * On device this goes through CapacitorHttp, which performs the request
  * natively and therefore is not subject to the WebView's CORS policy — that
- * matters because neither Strava nor OpenRouter allows arbitrary browser
+ * matters because neither Strava nor Groq allows arbitrary browser
  * origins. In a browser it falls back to fetch, which is enough for
  * development against endpoints that do send CORS headers.
  */

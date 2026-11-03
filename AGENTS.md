@@ -47,7 +47,7 @@ path is missing, or when the repository contradicts this guide.
 - `platform.ts` - The single HTTP entry point. Uses CapacitorHttp natively so
   requests are not subject to the WebView's CORS policy.
 - `strava.ts` - OAuth, token refresh, incremental activity import.
-- `openrouter.ts` - Chat completions against free models.
+- `groq.ts` - Chat completions against the Groq API (OpenAI-compatible).
 - `coach.ts` - Builds the factual digest sent to the model, plus the on-device
   rule-based brief used when offline or without a key.
 - `backup.ts` - JSON export/import; credentials are excluded.

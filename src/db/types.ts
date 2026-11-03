@@ -235,8 +235,8 @@ export type AppSettings = {
   stravaExpiresAt: number
   stravaAthleteName: string
   stravaLastSyncAt: number
-  openRouterApiKey: string
-  openRouterModel: string
+  groqApiKey: string
+  groqModel: string
   activeFocusSession: ActiveFocusSession | null
 }
 
@@ -255,8 +255,8 @@ export const DEFAULT_SETTINGS: AppSettings = {
   stravaExpiresAt: 0,
   stravaAthleteName: "",
   stravaLastSyncAt: 0,
-  openRouterApiKey: "",
-  openRouterModel: "meta-llama/llama-3.3-70b-instruct:free",
+  groqApiKey: "",
+  groqModel: "llama-3.3-70b-versatile",
   activeFocusSession: null,
 }
 
@@ -265,5 +265,5 @@ export const SECRET_SETTING_KEYS: (keyof AppSettings)[] = [
   "stravaClientSecret",
   "stravaAccessToken",
   "stravaRefreshToken",
-  "openRouterApiKey",
+  "groqApiKey",
 ]

@@ -10,16 +10,24 @@ import {
   useHabitLogs, useHabits, useNutritionLogs, useReadingSessions, useTasks,
 } from "../db/stats"
 import { askCoach } from "../services/coach"
-import { AiUnavailableError } from "../services/openrouter"
+import { AiUnavailableError, prettyModelName } from "../services/groq"
 import { addDays, dayKey, formatDate, formatDuration, lastNDays } from "../lib/date"
-import type { ChatMessage } from "../services/openrouter"
+import type { ChatMessage } from "../services/groq"
 
 const CONVERSATION_ID = "daily-coach"
+
+/** Starter prompts, phrased around data the app actually holds. */
+const SUGGESTIONS = [
+  "How has my focus been this week?",
+  "What should I work on today?",
+  "Is my nutrition on track?",
+  "How is my training trending?",
+]
 
 /**
  * Full-screen coach. The four analysis cards are computed on device from real
  * rows, so they are accurate offline; the conversation below them calls
- * OpenRouter and degrades to a clear message when that is unavailable.
+ * Groq and degrades to a clear message when that is unavailable.
  */
 export function AiCoach({ onClose }: { onClose: () => void }) {
   const settings = useSettings()
@@ -47,10 +55,10 @@ export function AiCoach({ onClose }: { onClose: () => void }) {
     messagesRef.current?.scrollTo({ top: messagesRef.current.scrollHeight, behavior: "smooth" })
   }, [stored?.length, thinking])
 
-  const hasKey = settings.openRouterApiKey.trim().length > 0
+  const hasKey = settings.groqApiKey.trim().length > 0
 
-  const send = async () => {
-    const text = question.trim()
+  const send = async (preset?: string) => {
+    const text = (preset ?? question).trim()
     if (!text || thinking) return
     setQuestion("")
     setError(null)
@@ -66,7 +74,7 @@ export function AiCoach({ onClose }: { onClose: () => void }) {
         conversationId: CONVERSATION_ID,
         role: "assistant",
         text: reply,
-        model: settings.openRouterModel,
+        model: settings.groqModel,
       })
     } catch (err) {
       const message =
@@ -131,7 +139,7 @@ export function AiCoach({ onClose }: { onClose: () => void }) {
               <strong>What would you like to understand?</strong>
             </div>
             <Badge tone={hasKey ? "sage" : "neutral"}>
-              {hasKey ? settings.openRouterModel.split("/").pop()?.replace(":free", "") ?? "AI" : "No API key"}
+              {hasKey ? prettyModelName(settings.groqModel) : "No API key"}
             </Badge>
           </div>
 
@@ -139,15 +147,29 @@ export function AiCoach({ onClose }: { onClose: () => void }) {
             <div className="ai-notice">
               <Icon name="key" size={16} />
               <span>
-                Add an OpenRouter API key in Settings to ask questions. Everything
-                above works offline without one.
+                Add a Groq API key in Settings to ask questions. Everything above
+                works offline without one.
               </span>
             </div>
           )}
 
           <div className="ai-messages" ref={messagesRef}>
             {(stored ?? []).length === 0 && (
-              <p>Ask about your study pattern, food, training or recovery.</p>
+              <div className="ai-suggestions">
+                <p>Ask about your study pattern, food, training or recovery.</p>
+                <div className="suggestion-chips">
+                  {SUGGESTIONS.map((suggestion) => (
+                    <button
+                      key={suggestion}
+                      type="button"
+                      disabled={!hasKey || thinking}
+                      onClick={() => void send(suggestion)}
+                    >
+                      {suggestion}
+                    </button>
+                  ))}
+                </div>
+              </div>
             )}
             {(stored ?? []).map((message) => (
               <div
@@ -178,7 +200,7 @@ export function AiCoach({ onClose }: { onClose: () => void }) {
             <input
               value={question}
               onChange={(event) => setQuestion(event.target.value)}
-              placeholder={hasKey ? "Ask about today’s study, food or recovery…" : "Add an API key in Settings first"}
+              placeholder={hasKey ? "Ask about today’s study, food or recovery…" : "Add a Groq API key in Settings first"}
               aria-label="Ask your daily coach"
               disabled={!hasKey || thinking}
             />
