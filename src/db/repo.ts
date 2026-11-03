@@ -129,6 +129,7 @@ export async function createBook(
   const status = input.status ?? "Want to read"
   await db.books.add({
     id,
+    kind: input.kind ?? "book",
     title: input.title,
     subtitle: input.subtitle ?? "",
     author: input.author,

@@ -13,6 +13,7 @@ import {
 import type { ActiveFocusSession, FocusSessionType } from "../db/types"
 import { SubjectManager } from "./SubjectManager"
 import { AddBookSheet } from "../components/BookForm"
+import { isPodcast, progressLabel } from "../lib/media"
 import { ReadingPagesPrompt } from "./ReadingPrompt"
 import { sessionNotification } from "../services/sessionNotification"
 import { FocusSessionOverlay, type SessionView } from "./FocusSession"
@@ -136,6 +137,9 @@ export function FocusPage(_props: PageProps) {
   const targetSeconds = targetMinutes * 60
   const remaining = Math.max(0, targetSeconds - elapsedSeconds)
 
+  /* "Reading" is the stored session type; a podcast is described as listening. */
+  const activity = reading && book && isPodcast(book) ? "listening" : sessionType.toLowerCase()
+
   /*
    * Mirror the session into the Android notification. Driven by state rather
    * than by each handler, so the notification cannot drift out of step with
@@ -150,7 +154,7 @@ export function FocusPage(_props: PageProps) {
     const elapsed = accumulatedMs + (runningSince !== null ? Date.now() - runningSince : 0)
     const remainingMs = Math.max(0, targetSeconds * 1000 - elapsed)
     void sessionNotification.show({
-      title: `${sessionType} session`,
+      title: `${activity.charAt(0).toUpperCase() + activity.slice(1)} session`,
       subject: target?.name ?? "Focus",
       running: runningSince !== null,
       countDown: mode === "Timer",
@@ -310,10 +314,9 @@ export function FocusPage(_props: PageProps) {
   const bookOptions: SelectOption[] = readable.map((entry) => ({
     value: entry.id,
     label: entry.title,
-    hint:
-      entry.pages > 0
-        ? `${entry.author} · page ${entry.currentPage} of ${entry.pages}`
-        : entry.author,
+    hint: `${isPodcast(entry) ? "Podcast · " : ""}${entry.author}${
+      entry.pages > 0 ? ` · ${progressLabel(entry)}` : ""
+    }`,
   }))
 
   const progress =
@@ -324,6 +327,7 @@ export function FocusPage(_props: PageProps) {
   const view: SessionView = {
     mode,
     type: sessionType,
+    label: activity.charAt(0).toUpperCase() + activity.slice(1),
     subject: target?.name ?? "Focus",
     tone: target?.tone ?? "teal",
     display: mode === "Timer" ? remaining : elapsedSeconds,
@@ -395,17 +399,17 @@ export function FocusPage(_props: PageProps) {
       <Card className="setup-card">
         <div className="setup-row">
           <div className="field">
-            <span>{reading ? "Book" : "Subject"}</span>
+            <span>{reading ? (book && isPodcast(book) ? "Podcast" : "Book or podcast") : "Subject"}</span>
             <Select
               value={reading ? bookId : subjectId}
               options={reading ? bookOptions : subjectOptions}
               onChange={reading ? setBookId : setSubjectId}
               placeholder={
                 reading
-                  ? readable.length === 0 ? "Add a book first" : "Choose a book…"
+                  ? readable.length === 0 ? "Add a book or podcast first" : "Choose…"
                   : subjects.length === 0 ? "Create one first" : "Choose…"
               }
-              sheetTitle={reading ? "What are you reading?" : "Study subject"}
+              sheetTitle={reading ? "What are you reading or listening to?" : "Study subject"}
               disabled={active}
               footer={
                 reading ? (
@@ -415,7 +419,7 @@ export function FocusPage(_props: PageProps) {
                     className="wide"
                     onClick={() => setAddingBook(true)}
                   >
-                    Add a book
+                    Add a book or podcast
                   </Button>
                 ) : (
                   <Button
@@ -433,7 +437,7 @@ export function FocusPage(_props: PageProps) {
           <Button
             variant="icon"
             icon="plus"
-            aria-label={reading ? "Add a book" : "Manage subjects"}
+            aria-label={reading ? "Add a book or podcast" : "Manage subjects"}
             onClick={() => (reading ? setAddingBook(true) : setManagingSubjects(true))}
           />
         </div>
@@ -449,11 +453,12 @@ export function FocusPage(_props: PageProps) {
               <Progress
                 value={book.pages > 0 ? (book.currentPage / book.pages) * 100 : 0}
               />
-              <small>
-                {book.pages > 0
-                  ? `page ${book.currentPage} of ${book.pages}`
-                  : `page ${book.currentPage}`}
-              </small>
+              <small>{progressLabel(book)}</small>
+              {isPodcast(book) && (
+                <span className="media-tag">
+                  <Icon name="podcast" size={12} /> Podcast
+                </span>
+              )}
             </div>
           </div>
         )}
@@ -482,10 +487,10 @@ export function FocusPage(_props: PageProps) {
           </span>
           <small>
             {(reading ? readable.length === 0 : subjects.length === 0)
-              ? reading ? "Add a book to begin" : "Create a subject to begin"
+              ? reading ? "Add a book or podcast to begin" : "Create a subject to begin"
               : mode === "Timer"
-                ? `${targetMinutes} minute ${sessionType.toLowerCase()} block`
-                : `Open-ended ${sessionType.toLowerCase()} session`}
+                ? `${targetMinutes} minute ${activity} block`
+                : `Open-ended ${activity} session`}
           </small>
         </div>
 
@@ -494,7 +499,7 @@ export function FocusPage(_props: PageProps) {
           className="wide start-button"
           onClick={active ? () => setOverlayOpen(true) : start}
         >
-          {active ? "Return to session" : `Start ${sessionType.toLowerCase()} session`}
+          {active ? "Return to session" : `Start ${activity} session`}
         </Button>
       </Card>
 

@@ -8,6 +8,8 @@ import type { FocusSessionType } from "../db/types"
 export type SessionView = {
   mode: "Timer" | "Stopwatch"
   type: FocusSessionType
+  /** Display verb: "Academic", "Reading" or "Listening". */
+  label: string
   subject: string
   tone: string
   /** Seconds shown on the clock. */
@@ -63,7 +65,7 @@ export function FocusSessionOverlay({
           </span>
           <h2>Session complete</h2>
           <p>
-            {formatDuration(view.elapsed)} of {view.type.toLowerCase()} focus on{" "}
+            {formatDuration(view.elapsed)} of {view.label.toLowerCase()} focus on{" "}
             <strong>{view.subject}</strong>.
           </p>
           <Button className="wide" onClick={onDismiss}>
@@ -79,7 +81,7 @@ export function FocusSessionOverlay({
       <header className="session-head">
         <span className={`pulse-dot ${view.running ? "" : "paused"}`} aria-hidden="true" />
         <strong>
-          {view.type} session{view.running ? "" : " · paused"}
+          {view.label} session{view.running ? "" : " · paused"}
         </strong>
         <button
           className="session-minimise"

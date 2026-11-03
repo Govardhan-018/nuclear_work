@@ -1333,6 +1333,7 @@ html[data-theme="dark"] .health-completion { color: #1c2116 !important; }
 
 /* The wordmark opens search, so it needs a real target, not just the badge. */
 .mobile-wordmark {
+  min-width: var(--tap-sm);
   min-height: var(--tap-sm);
   padding: 0 var(--space-2) 0 0;
 }
@@ -1900,3 +1901,39 @@ html[data-theme="dark"] .pillar-track { stroke: #343734; }
 }
 
 .app-boot .maya-mark { border-radius: 24%; }
+
+/* Book / podcast chooser on the add sheet. */
+.kind-picker { display: flex; gap: var(--space-2); }
+
+.kind-picker button {
+  flex: 1;
+  min-height: var(--tap);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  background: var(--surface-2);
+  color: var(--muted);
+  font-size: var(--text-sm);
+  font-weight: 600;
+}
+
+.kind-picker button.active {
+  background: var(--teal);
+  border-color: var(--teal);
+  color: #1b2113;
+}
+
+/* Small badge marking a podcast on the shelves and in pickers. */
+.media-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 10.5px;
+  color: var(--muted);
+}
+
+html[data-theme="dark"] .kind-picker button { background: #282b28; border-color: #3b3e3b; }
+html[data-theme="dark"] .kind-picker button.active { background: var(--teal); color: #1c2116; }

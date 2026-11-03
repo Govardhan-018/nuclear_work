@@ -3,6 +3,8 @@ import { Badge, Button, Card, EmptyState, Modal, PageHeader, Progress, SectionTi
 import { Heatmap } from "../components/Visuals"
 import { Select } from "../components/Select"
 import { AddBookSheet } from "../components/BookForm"
+import { Icon } from "../components/Icon"
+import { isPodcast, vocabulary } from "../lib/media"
 import { addReadingSession, deleteBook, logReadingProgress, updateBook } from "../db/repo"
 import { useReadingStats } from "../db/stats"
 import { dayKey, formatShortDate, lastNDays, startOfMonth } from "../lib/date"
@@ -14,10 +16,20 @@ const BOOK_STATUSES: BookStatus[] = ["Reading", "Want to read", "Completed"]
 export function ReadingPage(_props: PageProps) {
   const stats = useReadingStats()
   const [tab, setTab] = useState<BookStatus>("Reading")
+  const [kindFilter, setKindFilter] = useState<"All" | "Books" | "Podcasts">("All")
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [adding, setAdding] = useState(false)
 
-  const visible = stats.books.filter((b) => b.status === tab)
+  const visible = stats.books
+    .filter((b) => b.status === tab)
+    .filter((b) =>
+      kindFilter === "All"
+        ? true
+        : kindFilter === "Podcasts"
+          ? isPodcast(b)
+          : !isPodcast(b),
+    )
+  const podcastCount = stats.books.filter((b) => isPodcast(b)).length
   const selected = stats.books.find((b) => b.id === selectedId) ?? null
   const feature = stats.currentBook
 
@@ -107,8 +119,8 @@ export function ReadingPage(_props: PageProps) {
 
       <Card className="book-shelf">
         <SectionTitle
-          title="Your books"
-          subtitle={`${stats.books.length} in your library`}
+          title="Your library"
+          subtitle={`${stats.books.length} item${stats.books.length === 1 ? "" : "s"}${podcastCount > 0 ? ` · ${podcastCount} podcast${podcastCount === 1 ? "" : "s"}` : ""}`}
           action={
             <Segmented
               items={["Reading", "Want to read", "Completed"] as const}
@@ -117,6 +129,22 @@ export function ReadingPage(_props: PageProps) {
             />
           }
         />
+        {podcastCount > 0 && (
+          <div className="library-filter kind-filter">
+            <div>
+              {(["All", "Books", "Podcasts"] as const).map((option) => (
+                <button
+                  key={option}
+                  className={kindFilter === option ? "active" : ""}
+                  onClick={() => setKindFilter(option)}
+                >
+                  {option}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
         {visible.length === 0 ? (
           <EmptyState
             icon="book"
@@ -139,9 +167,14 @@ export function ReadingPage(_props: PageProps) {
                       ? `Finished ${formatShortDate(book.finishedAt)}`
                       : "Finished"
                     : book.status === "Want to read"
-                      ? `${book.pages} pages`
-                      : `${book.currentPage} / ${book.pages} pages`}
+                      ? `${book.pages} ${vocabulary(book).units}`
+                      : `${book.currentPage} / ${book.pages} ${vocabulary(book).units}`}
                 </small>
+                {isPodcast(book) && (
+                  <span className="media-tag">
+                    <Icon name="podcast" size={12} /> Podcast
+                  </span>
+                )}
               </button>
             ))}
           </div>
@@ -187,10 +220,10 @@ function BookDetail({ book, onClose }: { book: Book; onClose: () => void }) {
           <p>by {book.author}</p>
           <div className="book-detail-stats">
             <span>
-              <strong>{book.currentPage}</strong>current page
+              <strong>{book.currentPage}</strong>current {vocabulary(book).unit}
             </span>
             <span>
-              <strong>{book.pages}</strong>total pages
+              <strong>{book.pages}</strong>total {vocabulary(book).units}
             </span>
             <span>
               <strong>
@@ -204,7 +237,7 @@ function BookDetail({ book, onClose }: { book: Book; onClose: () => void }) {
 
       <div className="field-row">
         <label className="field">
-          <span>Current page</span>
+          <span>Current {vocabulary(book).unit}</span>
           <input
             type="number"
             inputMode="numeric"
@@ -215,7 +248,7 @@ function BookDetail({ book, onClose }: { book: Book; onClose: () => void }) {
           />
         </label>
         <label className="field">
-          <span>Minutes read</span>
+          <span>Minutes {vocabulary(book).pastVerb.toLowerCase()}</span>
           <input
             type="number"
             inputMode="numeric"

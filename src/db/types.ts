@@ -52,8 +52,18 @@ export type HabitLog = SyncMeta & {
 
 export type BookStatus = "Reading" | "Want to read" | "Completed"
 
+/**
+ * Books and podcasts share a record. A podcast counts episodes where a book
+ * counts pages, so `pages`/`currentPage` hold whichever unit applies and the
+ * labels follow `kind`. Reusing the field means every existing statistic,
+ * chart and streak keeps working untouched.
+ */
+export type MediaKind = "book" | "podcast"
+
 export type Book = SyncMeta & {
   id: string
+  /** Absent on records created before podcasts existed; treat as "book". */
+  kind?: MediaKind
   title: string
   subtitle?: string
   author: string

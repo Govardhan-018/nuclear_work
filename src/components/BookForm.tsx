@@ -1,39 +1,46 @@
 import { useState } from "react"
 import { Button } from "./UI"
+import { Icon } from "./Icon"
 import { BottomSheet } from "./Sheet"
 import { createBook } from "../db/repo"
-import type { BookStatus } from "../db/types"
+import { vocabulary } from "../lib/media"
+import type { BookStatus, MediaKind } from "../db/types"
 
 const ACCENTS = ["sage", "sand", "forest", "cream"]
 const STATUSES: BookStatus[] = ["Reading", "Want to read", "Completed"]
 
 /**
- * Add a book. Shared by the Reading page and the Focus tab, so a reading
+ * Add a book or a podcast. Shared by the Reading page and the Focus tab, so a
  * session can be started without leaving the timer to go and create one.
  */
 export function AddBookSheet({
   onClose,
   onCreated,
   defaultStatus = "Reading",
+  defaultKind = "book",
 }: {
   onClose: () => void
   onCreated?: (id: string) => void
   defaultStatus?: BookStatus
+  defaultKind?: MediaKind
 }) {
+  const [kind, setKind] = useState<MediaKind>(defaultKind)
   const [title, setTitle] = useState("")
   const [author, setAuthor] = useState("")
-  const [pages, setPages] = useState("")
+  const [units, setUnits] = useState("")
   const [status, setStatus] = useState<BookStatus>(defaultStatus)
   const [cover, setCover] = useState("")
 
+  const words = vocabulary({ kind })
   const valid = title.trim().length > 0
 
   const submit = async () => {
     if (!valid) return
     const id = await createBook({
+      kind,
       title: title.trim(),
       author: author.trim() || "Unknown",
-      pages: Math.max(0, Number(pages) || 0),
+      pages: Math.max(0, Number(units) || 0),
       status,
       cover: cover.trim() || title.trim().slice(0, 18).toUpperCase(),
       accent: ACCENTS[Math.floor(Math.random() * ACCENTS.length)],
@@ -44,8 +51,8 @@ export function AddBookSheet({
 
   return (
     <BottomSheet
-      title="Add a book"
-      subtitle="Track pages, time and streaks against it"
+      title={kind === "podcast" ? "Add a podcast" : "Add a book"}
+      subtitle={`Track ${words.units}, time and streaks against it`}
       onClose={onClose}
       footer={
         <div className="sheet-actions">
@@ -53,7 +60,7 @@ export function AddBookSheet({
             Cancel
           </Button>
           <Button className="wide" icon="plus" disabled={!valid} onClick={() => void submit()}>
-            Add book
+            Add {kind}
           </Button>
         </div>
       }
@@ -64,35 +71,55 @@ export function AddBookSheet({
           void submit()
         }}
       >
+        <div className="field">
+          <span>Type</span>
+          <div className="kind-picker">
+            {(["book", "podcast"] as MediaKind[]).map((option) => (
+              <button
+                key={option}
+                type="button"
+                className={kind === option ? "active" : ""}
+                aria-pressed={kind === option}
+                onClick={() => setKind(option)}
+              >
+                <Icon name={option === "podcast" ? "podcast" : "book"} size={18} />
+                {option === "podcast" ? "Podcast" : "Book"}
+              </button>
+            ))}
+          </div>
+        </div>
+
         <label className="field">
           <span>Title</span>
           <input
             autoFocus
             value={title}
             onChange={(event) => setTitle(event.target.value)}
-            placeholder="Four Thousand Weeks"
+            placeholder={kind === "podcast" ? "Hard Fork" : "Four Thousand Weeks"}
             maxLength={120}
           />
         </label>
+
         <label className="field">
-          <span>Author</span>
+          <span>{words.creator}</span>
           <input
             value={author}
             onChange={(event) => setAuthor(event.target.value)}
-            placeholder="Oliver Burkeman"
+            placeholder={kind === "podcast" ? "The New York Times" : "Oliver Burkeman"}
             maxLength={120}
           />
         </label>
+
         <div className="field-row">
           <label className="field">
-            <span>Total pages</span>
+            <span>{words.total}</span>
             <input
               type="number"
               inputMode="numeric"
               min={0}
-              value={pages}
-              onChange={(event) => setPages(event.target.value)}
-              placeholder="288"
+              value={units}
+              onChange={(event) => setUnits(event.target.value)}
+              placeholder={kind === "podcast" ? "40" : "288"}
             />
           </label>
           <div className="field">
@@ -105,12 +132,17 @@ export function AddBookSheet({
                   className={status === option ? "active" : ""}
                   onClick={() => setStatus(option)}
                 >
-                  {option === "Want to read" ? "Later" : option}
+                  {option === "Want to read"
+                    ? "Later"
+                    : option === "Reading" && kind === "podcast"
+                      ? "Listening"
+                      : option}
                 </button>
               ))}
             </div>
           </div>
         </div>
+
         <label className="field">
           <span>Cover text</span>
           <input
@@ -120,6 +152,13 @@ export function AddBookSheet({
             maxLength={24}
           />
         </label>
+
+        {kind === "podcast" && Number(units) === 0 && (
+          <p className="soft-note">
+            Leave the episode count at zero for an ongoing show. Progress is counted
+            up rather than toward a total.
+          </p>
+        )}
       </form>
     </BottomSheet>
   )

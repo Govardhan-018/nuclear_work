@@ -2,6 +2,7 @@ import { useState } from "react"
 import { Button, Progress } from "../components/UI"
 import { BottomSheet } from "../components/Sheet"
 import { formatDuration } from "../lib/date"
+import { isPodcast, vocabulary } from "../lib/media"
 import type { Book } from "../db/types"
 
 /**
@@ -21,6 +22,8 @@ export function ReadingPagesPrompt({
   onSkip: () => void
 }) {
   const [pages, setPages] = useState("")
+  const words = vocabulary(book)
+  const podcast = isPodcast(book)
 
   const value = Math.max(0, Math.round(Number(pages) || 0))
   const remaining = book.pages > 0 ? Math.max(0, book.pages - book.currentPage) : null
@@ -32,7 +35,7 @@ export function ReadingPagesPrompt({
   return (
     <BottomSheet
       title="How far did you get?"
-      subtitle={`${formatDuration(seconds)} of reading`}
+      subtitle={`${formatDuration(seconds)} of ${words.verb.toLowerCase()}`}
       onClose={onSkip}
       footer={
         <div className="sheet-actions">
@@ -40,7 +43,7 @@ export function ReadingPagesPrompt({
             Skip
           </Button>
           <Button className="wide" icon="check" onClick={() => onSubmit(capped)}>
-            {finishes ? "Finish book" : "Save progress"}
+            {finishes ? `Finish ${podcast ? "podcast" : "book"}` : "Save progress"}
           </Button>
         </div>
       }
@@ -55,14 +58,14 @@ export function ReadingPagesPrompt({
           <Progress value={pct} />
           <small>
             {book.pages > 0
-              ? `page ${nextPage} of ${book.pages}${remaining !== null ? ` · ${Math.max(0, book.pages - nextPage)} left` : ""}`
-              : `page ${nextPage}`}
+              ? `${words.unit} ${nextPage} of ${book.pages}${remaining !== null ? ` · ${Math.max(0, book.pages - nextPage)} left` : ""}`
+              : `${words.unit} ${nextPage}`}
           </small>
         </div>
       </div>
 
       <label className="field">
-        <span>Pages read</span>
+        <span>{words.logged}</span>
         <input
           autoFocus
           type="number"
@@ -76,7 +79,7 @@ export function ReadingPagesPrompt({
       </label>
 
       <div className="quick-pages">
-        {[5, 10, 20, 30].map((n) => (
+        {(podcast ? [1, 2, 3, 5] : [5, 10, 20, 30]).map((n) => (
           <button
             key={n}
             type="button"

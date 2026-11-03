@@ -205,6 +205,20 @@ const paths: Record<string, React.ReactNode> = {
       <path d="M4.5 20a7.5 7.5 0 0 1 15 0" />
     </>
   ),
+  podcast: (
+    <>
+      <rect x="9" y="2.5" width="6" height="11" rx="3" />
+      <path d="M5.5 11a6.5 6.5 0 0 0 13 0" />
+      <path d="M12 17.5V21M9 21h6" />
+    </>
+  ),
+  headphones: (
+    <>
+      <path d="M4 14v-2a8 8 0 0 1 16 0v2" />
+      <rect x="2.5" y="13.5" width="4.5" height="7" rx="2" />
+      <rect x="17" y="13.5" width="4.5" height="7" rx="2" />
+    </>
+  ),
   note: (
     <>
       <path d="M5 4h14v12l-5 5H5z" />
