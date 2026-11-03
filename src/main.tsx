@@ -2,6 +2,8 @@ import React from "react"
 import ReactDOM from "react-dom/client"
 import App from "./App"
 import "./index.css"
+// Loaded last so the design system has the final word on layout and scale.
+import "./styles/system.css"
 import { isNative } from "./services/platform"
 
 ReactDOM.createRoot(document.getElementById("root")!).render(

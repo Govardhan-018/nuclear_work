@@ -12,7 +12,7 @@ const config: CapacitorConfig = {
   },
   plugins: {
     SplashScreen: {
-      launchShowDuration: 1200,
+      launchShowDuration: 800,
       launchAutoHide: false,
       backgroundColor: "#e8e8e7",
       androidSplashResourceName: "splash",
@@ -20,9 +20,11 @@ const config: CapacitorConfig = {
       showSpinner: false,
     },
     StatusBar: {
-      overlaysWebView: false,
+      // The page draws its own background behind the bars and MainActivity
+      // reports their heights, so the WebView is free to go edge to edge.
+      // Android 15 enforces this anyway for targetSdk 35+.
+      overlaysWebView: true,
       style: "LIGHT",
-      backgroundColor: "#e8e8e7",
     },
     CapacitorHttp: {
       // Routes fetch/XHR through the native layer so Strava and OpenRouter

@@ -1,0 +1,409 @@
+/* ==========================================================================
+   Design system and mobile shell.
+
+   Loaded after index.css so it has the final word on layout, safe areas,
+   navigation and typography rhythm. index.css still holds the original
+   component styling; this file fixes the scale and structure around it.
+   ========================================================================== */
+
+:root {
+  /* --- Window insets -----------------------------------------------------
+     MainActivity writes --inset-* on Android, where env(safe-area-inset-*)
+     does not report system bars reliably. env() still covers iOS and the
+     installed web app, so take whichever is larger. */
+  --inset-top: 0px;
+  --inset-bottom: 0px;
+  --inset-left: 0px;
+  --inset-right: 0px;
+
+  --safe-top: max(var(--inset-top), env(safe-area-inset-top, 0px));
+  --safe-bottom: max(var(--inset-bottom), env(safe-area-inset-bottom, 0px));
+  --safe-left: max(var(--inset-left), env(safe-area-inset-left, 0px));
+  --safe-right: max(var(--inset-right), env(safe-area-inset-right, 0px));
+
+  /* --- Fluid type scale --------------------------------------------------
+     Clamped so a 320px phone and a 1280px desktop both stay readable. */
+  --text-2xs: clamp(11px, 2.9vw, 12px);
+  --text-xs:  clamp(12px, 3.1vw, 13px);
+  --text-sm:  clamp(13px, 3.4vw, 14px);
+  --text-base: clamp(14px, 3.7vw, 15px);
+  --text-md:  clamp(15px, 4vw, 17px);
+  --text-lg:  clamp(17px, 4.6vw, 19px);
+  --text-xl:  clamp(20px, 5.4vw, 23px);
+  --text-2xl: clamp(24px, 6.6vw, 30px);
+  --text-3xl: clamp(30px, 8.4vw, 40px);
+  --text-display: clamp(34px, 10vw, 52px);
+
+  /* --- Spacing ---------------------------------------------------------- */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+
+  /* --- Radius ----------------------------------------------------------- */
+  --radius-sm: 10px;
+  --radius-md: 14px;
+  --radius-lg: 20px;
+  --radius-xl: 26px;
+  --radius-pill: 999px;
+
+  /* --- Elevation -------------------------------------------------------- */
+  --elev-1: 0 1px 2px rgba(22, 28, 24, .05);
+  --elev-2: 0 4px 14px rgba(22, 28, 24, .07);
+  --elev-3: 0 12px 32px rgba(22, 28, 24, .12);
+  --elev-nav: 0 -2px 24px rgba(22, 28, 24, .10);
+
+  /* --- Motion ----------------------------------------------------------- */
+  --ease-out: cubic-bezier(.22, 1, .36, 1);
+  --ease-spring: cubic-bezier(.34, 1.3, .5, 1);
+  --dur-fast: 140ms;
+  --dur-mid: 240ms;
+  --dur-slow: 380ms;
+
+  /* --- Control sizing ----------------------------------------------------
+     48px is the Android accessibility minimum for a touch target. */
+  --tap: 48px;
+  --tap-sm: 44px;
+  --control-h: 50px;
+  --nav-h: 60px;
+}
+
+/* --------------------------------------------------------------- shell -- */
+
+html,
+body {
+  /* The page paints behind the transparent system bars. */
+  background: var(--bg);
+  overscroll-behavior-y: none;
+}
+
+body {
+  font-size: var(--text-base);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* Horizontal insets matter on devices with a curved edge or landscape cutout. */
+.app-shell {
+  padding-left: var(--safe-left);
+  padding-right: var(--safe-right);
+}
+
+/* ------------------------------------------------------------- header --- */
+
+@media (max-width: 760px) {
+  .topbar {
+    position: sticky;
+    top: 0;
+    z-index: 40;
+    height: auto;
+    min-height: calc(56px + var(--safe-top));
+    padding: calc(var(--safe-top) + var(--space-2)) var(--space-4) var(--space-2);
+    background: color-mix(in srgb, var(--bg) 88%, transparent);
+    backdrop-filter: saturate(1.6) blur(14px);
+    -webkit-backdrop-filter: saturate(1.6) blur(14px);
+    border-bottom: 1px solid transparent;
+    transition: border-color var(--dur-mid) var(--ease-out);
+    gap: var(--space-2);
+  }
+
+  /* Hairline appears once the page scrolls, so the bar reads as a surface. */
+  .topbar.scrolled {
+    border-bottom-color: var(--line);
+  }
+
+  .app-main {
+    padding-bottom: calc(var(--nav-h) + var(--safe-bottom) + var(--space-6));
+  }
+
+  .page {
+    padding: var(--space-5) var(--space-4) var(--space-8);
+  }
+}
+
+/* Header controls need real touch targets. */
+.topbar .button-icon,
+.topbar .notification,
+.topbar .theme-toggle {
+  min-width: var(--tap);
+  min-height: var(--tap);
+}
+
+.mobile-wordmark {
+  display: none;
+  align-items: center;
+  gap: var(--space-2);
+  border: 0;
+  background: transparent;
+  padding: 0;
+}
+
+@media (max-width: 760px) {
+  .mobile-wordmark {
+    display: inline-flex;
+  }
+  .mobile-wordmark strong {
+    font-size: var(--text-md);
+    letter-spacing: .1em;
+  }
+}
+
+/* --------------------------------------------------- bottom navigation --- */
+
+@media (max-width: 760px) {
+  .mobile-nav {
+    display: flex;
+    position: fixed;
+    left: calc(var(--space-3) + var(--safe-left));
+    right: calc(var(--space-3) + var(--safe-right));
+    bottom: calc(var(--safe-bottom) + var(--space-2));
+    z-index: 50;
+
+    height: var(--nav-h);
+    padding: 6px;
+    gap: 2px;
+
+    background: color-mix(in srgb, var(--surface) 92%, transparent);
+    backdrop-filter: saturate(1.8) blur(20px);
+    -webkit-backdrop-filter: saturate(1.8) blur(20px);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-xl);
+    box-shadow: var(--elev-3);
+
+    justify-content: space-between;
+    align-items: stretch;
+  }
+
+  .mobile-nav button {
+    flex: 1 1 0;
+    min-width: 0;
+    min-height: var(--tap);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    padding: 0 2px;
+
+    border: 0;
+    background: transparent;
+    border-radius: var(--radius-lg);
+    color: var(--muted);
+    transition:
+      background-color var(--dur-mid) var(--ease-out),
+      color var(--dur-mid) var(--ease-out);
+  }
+
+  .mobile-nav button svg {
+    width: 21px;
+    height: 21px;
+    flex: 0 0 auto;
+    transition: transform var(--dur-mid) var(--ease-spring);
+  }
+
+  .mobile-nav small {
+    font-size: 10.5px;
+    font-weight: 600;
+    letter-spacing: .005em;
+    line-height: 1.1;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .mobile-nav button.active {
+    background: var(--teal);
+    color: #1b2113;
+  }
+
+  .mobile-nav button.active svg {
+    transform: translateY(-1px) scale(1.06);
+  }
+
+  .mobile-nav button.active small {
+    color: inherit;
+    font-weight: 700;
+  }
+
+  .mobile-nav button:active {
+    transform: scale(.96);
+  }
+}
+
+/* Very narrow phones: keep five labels legible by tightening, not shrinking. */
+@media (max-width: 349px) {
+  .mobile-nav small {
+    font-size: 9.5px;
+    letter-spacing: -.01em;
+  }
+  .mobile-nav button svg {
+    width: 19px;
+    height: 19px;
+  }
+}
+
+/* ------------------------------------------------------------- drawer --- */
+
+.mobile-drawer .sidebar {
+  padding-top: calc(var(--safe-top) + var(--space-4));
+  padding-bottom: calc(var(--safe-bottom) + var(--space-4));
+}
+
+/* ------------------------------------------------------- full screens --- */
+
+.ai-fullscreen {
+  padding-top: 0;
+}
+
+.ai-fullscreen-header {
+  padding-top: calc(var(--safe-top) + var(--space-3));
+}
+
+.ai-fullscreen-body {
+  padding-bottom: calc(var(--safe-bottom) + var(--space-6));
+}
+
+/* --------------------------------------------------------------- boot --- */
+
+.app-boot {
+  padding-top: var(--safe-top);
+  padding-bottom: var(--safe-bottom);
+}
+
+/* -------------------------------------------------------------- modal --- */
+
+.modal-backdrop {
+  padding: calc(var(--safe-top) + var(--space-4)) var(--space-4)
+           calc(var(--safe-bottom) + var(--space-4));
+  align-items: flex-end;
+}
+
+@media (min-width: 761px) {
+  .modal-backdrop {
+    align-items: center;
+  }
+}
+
+.modal {
+  width: min(560px, 100%);
+  max-height: min(86vh, 760px);
+  border-radius: var(--radius-xl);
+  animation: sheet-in var(--dur-slow) var(--ease-out);
+}
+
+@keyframes sheet-in {
+  from { transform: translateY(18px); opacity: 0; }
+  to   { transform: none; opacity: 1; }
+}
+
+.modal-head h2 {
+  font-size: var(--text-lg);
+}
+
+/* Grab handle, so the dialog reads as a sheet on a phone. */
+@media (max-width: 760px) {
+  .modal::before {
+    content: "";
+    display: block;
+    width: 38px;
+    height: 4px;
+    border-radius: var(--radius-pill);
+    background: var(--line);
+    margin: -6px auto 14px;
+  }
+}
+
+/* ------------------------------------------------------ touch targets --- */
+
+.button {
+  min-height: var(--tap-sm);
+  font-size: var(--text-sm);
+  border-radius: var(--radius-pill);
+  padding: 0 18px;
+  gap: 8px;
+}
+
+.button-icon {
+  min-width: var(--tap-sm);
+  padding: 0;
+}
+
+.field input,
+.field select,
+.field textarea,
+.library-search,
+.command-search {
+  min-height: var(--control-h);
+  font-size: var(--text-base);
+  border-radius: var(--radius-md);
+}
+
+/* 16px minimum stops iOS and some Android keyboards zooming the viewport. */
+input,
+select,
+textarea {
+  font-size: max(16px, var(--text-base));
+}
+
+.segmented button,
+.task-tabs button,
+.answer-pills button,
+.portion-picker button,
+.energy-check button,
+.duration-picker button,
+.library-filter button {
+  min-height: var(--tap-sm);
+  font-size: var(--text-sm);
+}
+
+.water-glasses button {
+  min-height: var(--tap);
+}
+
+.row-action,
+.round-more,
+.icon-picker button {
+  min-width: var(--tap-sm);
+  min-height: var(--tap-sm);
+}
+
+/* ---------------------------------------------------------- scrolling --- */
+
+/* Horizontal scrollers should not show a bar or bounce past their content. */
+.date-strip,
+.task-tabs,
+.library-filter,
+.calendar-shell {
+  scrollbar-width: none;
+  overscroll-behavior-x: contain;
+  scroll-snap-type: x proximity;
+}
+
+.date-strip::-webkit-scrollbar,
+.task-tabs::-webkit-scrollbar,
+.library-filter::-webkit-scrollbar,
+.calendar-shell::-webkit-scrollbar {
+  display: none;
+}
+
+.date-strip button {
+  scroll-snap-align: center;
+}
+
+/* ------------------------------------------------------------ motion ---- */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: .001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .001ms !important;
+    scroll-behavior: auto !important;
+  }
+}

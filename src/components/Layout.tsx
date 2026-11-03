@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react"
 import type { PageId } from "../types"
 import { navItems } from "../data"
 import { useSettings } from "../db/settings"
@@ -76,8 +77,17 @@ export function Topbar({
   theme: "light" | "dark"
   onToggleTheme: () => void
 }) {
+  // The sticky bar only grows a hairline once content passes beneath it.
+  const [scrolled, setScrolled] = useState(false)
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 4)
+    onScroll()
+    window.addEventListener("scroll", onScroll, { passive: true })
+    return () => window.removeEventListener("scroll", onScroll)
+  }, [])
+
   return (
-    <div className="topbar">
+    <div className={`topbar ${scrolled ? "scrolled" : ""}`}>
       <Button
         variant="icon"
         icon="menu"
@@ -139,13 +149,15 @@ export function MobileNav({
           key={item.id}
           className={page === item.id ? "active" : ""}
           onClick={() => onNavigate(item.id as PageId)}
+          aria-current={page === item.id ? "page" : undefined}
+          aria-label={item.label}
         >
-          <Icon name={item.icon} />
-          <small>{item.label}</small>
+          <Icon name={item.icon} size={21} />
+          <small>{item.short}</small>
         </button>
       ))}
       <button className={moreActive ? "active" : ""} onClick={onMore} aria-label="More pages">
-        <Icon name="menu" />
+        <Icon name="menu" size={21} />
         <small>More</small>
       </button>
     </nav>

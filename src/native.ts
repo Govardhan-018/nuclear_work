@@ -67,12 +67,17 @@ export function registerDeepLinks(onResult: (result: DeepLinkResult) => void): (
   }
 }
 
-/** Matches the system bars to the app theme. */
+/**
+ * Matches the system bar icons to the app theme. Only the icon style is set:
+ * from Android 15 the bar background colour APIs are no-ops, and the page
+ * paints its own background behind the transparent bars instead.
+ */
 export async function applyNativeTheme(theme: "light" | "dark"): Promise<void> {
   if (!isNative()) return
   try {
+    await StatusBar.setOverlaysWebView({ overlay: true })
+    // Style.Light means light *bars*, so dark icons; inverted for dark mode.
     await StatusBar.setStyle({ style: theme === "dark" ? Style.Dark : Style.Light })
-    await StatusBar.setBackgroundColor({ color: theme === "dark" ? "#111311" : "#eceeea" })
   } catch {
     /* Not fatal; some devices disallow changing the status bar. */
   }

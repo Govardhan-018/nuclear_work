@@ -33,7 +33,7 @@ export function Ring({
   const dash = 2 * Math.PI * r
   const clamped = Number.isFinite(value) ? Math.max(0, Math.min(100, value)) : 0
   return (
-    <div className="ring" style={{ width: size, height: size }}>
+    <div className="progress-ring" style={{ width: size, height: size }}>
       <svg viewBox="0 0 110 110" aria-hidden="true">
         <circle className="ring-bg" cx="55" cy="55" r={r} />
         <circle
