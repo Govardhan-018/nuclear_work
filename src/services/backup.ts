@@ -7,7 +7,7 @@ import { isNative } from "./platform"
 const BACKUP_VERSION = 1
 
 export type BackupFile = {
-  app: "life-os"
+  app: "maya" | "life-os"
   version: number
   exportedAt: string
   includesSecrets: boolean
@@ -35,7 +35,7 @@ export async function buildBackup(includeSecrets = false): Promise<BackupFile> {
     : settings.filter((row) => !secretKeys.has(row.key))
 
   return {
-    app: "life-os",
+    app: "maya",
     version: BACKUP_VERSION,
     exportedAt: new Date().toISOString(),
     includesSecrets: includeSecrets,
@@ -56,7 +56,7 @@ export type ExportResult = { method: "file" | "download" | "clipboard"; location
 export async function exportBackup(includeSecrets = false): Promise<ExportResult> {
   const backup = await buildBackup(includeSecrets)
   const json = JSON.stringify(backup, null, 2)
-  const filename = `life-os-backup-${new Date().toISOString().slice(0, 10)}.json`
+  const filename = `maya-backup-${new Date().toISOString().slice(0, 10)}.json`
 
   if (isNative()) {
     const written = await Filesystem.writeFile({
@@ -68,7 +68,7 @@ export async function exportBackup(includeSecrets = false): Promise<ExportResult
     })
     try {
       await Share.share({
-        title: "Life OS backup",
+        title: "Maya backup",
         url: written.uri,
         dialogTitle: "Save or send your backup",
       })
@@ -103,8 +103,9 @@ export async function importBackup(json: string): Promise<ImportResult> {
   } catch {
     throw new Error("That file is not valid JSON.")
   }
-  if (parsed.app !== "life-os" || typeof parsed.tables !== "object") {
-    throw new Error("That does not look like a Life OS backup.")
+  // "life-os" is the pre-rename marker; backups taken before it still import.
+  if ((parsed.app !== "maya" && parsed.app !== "life-os") || typeof parsed.tables !== "object") {
+    throw new Error("That does not look like a Maya backup.")
   }
   if (parsed.version > BACKUP_VERSION) {
     throw new Error("This backup was made by a newer version of the app.")

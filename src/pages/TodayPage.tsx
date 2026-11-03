@@ -11,9 +11,11 @@ import { toggleTask } from "../db/repo"
 import { useSettings } from "../db/settings"
 import {
   addDays, dayKey, formatDate, formatDuration, formatDurationShort, formatTime,
-  lastNDays, startOfWeek, WEEKDAY_LABELS, type DayKey,
+  fromDayKey, lastNDays, startOfWeek, WEEKDAY_LABELS, type DayKey,
 } from "../lib/date"
 import { localBrief as localBriefFrom } from "../services/coach"
+import { PillarRing } from "../components/PillarRing"
+import { WeekSpark } from "../components/WeekSpark"
 import { greeting } from "./shared"
 import { AiCoach } from "./AiCoach"
 import type { PageProps } from "./shared"
@@ -79,6 +81,9 @@ export function TodayPage({ onNavigate, onQuickAdd }: PageProps) {
 
   const focusTargetSeconds = settings.focusDailyTargetMinutes * 60
   const nutrition = nutritionScore(dayNutrition)
+
+  const done = dayTasksDone + habitsDone
+  const total = dayTasks.length + habits.length
 
   const balance = computeBalance({
     focusSeconds,
@@ -267,12 +272,44 @@ export function TodayPage({ onNavigate, onQuickAdd }: PageProps) {
     return set
   }, [focusSessions, activities, habitLogs, readingSessions])
 
-  const pillars: Array<[string, number, string]> = [
-    ["Movement", Math.min(100, Math.round((activeMinutes / 30) * 100)), distanceKm > 0 ? `${distanceKm.toFixed(1)} km` : `${activeMinutes} min`],
-    ["Study", focusTargetSeconds > 0 ? Math.min(100, Math.round((focusSeconds / focusTargetSeconds) * 100)) : 0, formatDurationShort(focusSeconds)],
-    ["Nutrition", nutrition ?? 0, nutrition === null ? "Not logged" : `${nutrition}%`],
-    ["Habits", habits.length > 0 ? Math.round((habitsDone / habits.length) * 100) : 0, `${habitsDone}/${habits.length}`],
+  const pillars = [
+    {
+      icon: "fitness", label: "Movement", tone: "teal",
+      value: Math.min(100, Math.round((activeMinutes / 30) * 100)),
+      detail: distanceKm > 0 ? `${distanceKm.toFixed(1)} km` : `${activeMinutes} min`,
+      muted: activeMinutes === 0,
+    },
+    {
+      icon: "focus", label: "Study", tone: "lavender",
+      value: focusTargetSeconds > 0 ? Math.min(100, Math.round((focusSeconds / focusTargetSeconds) * 100)) : 0,
+      detail: formatDurationShort(focusSeconds),
+      muted: focusSeconds === 0,
+    },
+    {
+      icon: "food", label: "Nutrition", tone: "coral",
+      value: nutrition ?? 0,
+      detail: nutrition === null ? "--" : `${nutrition}%`,
+      muted: nutrition === null,
+    },
+    {
+      icon: "habits", label: "Habits", tone: "blue",
+      value: habits.length > 0 ? Math.round((habitsDone / habits.length) * 100) : 0,
+      detail: habits.length > 0 ? `${habitsDone}/${habits.length}` : "--",
+      muted: habits.length === 0 || habitsDone === 0,
+    },
   ]
+
+  /* Seven days of overall activity for the strip under the hero. */
+  const sparkDays = lastNDays(7)
+  const sparkValues = sparkDays.map((day) => {
+    const f = sumBy(focusSessions.filter((x) => x.date === day), (x) => x.seconds) / 3600
+    const a = sumBy(activities.filter((x) => x.date === day), (x) => x.movingTimeS) / 3600
+    const r = sumBy(readingSessions.filter((x) => x.date === day), (x) => x.minutes) / 60
+    return +(f + a + r).toFixed(2)
+  })
+  const sparkLabels = sparkDays.map((day) =>
+    fromDayKey(day).toLocaleDateString(undefined, { weekday: "narrow" }),
+  )
 
   return (
     <div className="page today-page">
@@ -310,28 +347,42 @@ export function TodayPage({ onNavigate, onQuickAdd }: PageProps) {
       </div>
 
       <div className="mobile-command">
-        <Card className="life-state-card">
-          <div className="life-state-top">
-            <div>
-              <span>{isToday ? "Today’s complete state" : "Day summary"}</span>
-              <strong>{balanceLabel(balance)}</strong>
-            </div>
+        <Card className="day-hero">
+          <div className="day-hero-top">
             <Ring
               value={balance ?? 0}
-              size={76}
+              size={104}
               label={balance === null ? "--" : String(balance)}
-              sublabel="balance"
+              sublabel={balance === null ? "no data" : "balance"}
             />
+            <div>
+              <span>{isToday ? "Today" : "This day"}</span>
+              <strong>{balanceLabel(balance)}</strong>
+              <p>
+                {balance === null
+                  ? "Log anything and this fills in."
+                  : `${done} of ${total} planned items done.`}
+              </p>
+            </div>
           </div>
-          <div className="life-state-bars">
-            {pillars.map(([label, value, detail]) => (
-              <div key={label}>
-                <span>
-                  {label} <b>{detail}</b>
-                </span>
-                <Progress value={value} />
-              </div>
+
+          <div className="pillar-row">
+            {pillars.map((pillar) => (
+              <PillarRing key={pillar.label} {...pillar} />
             ))}
+          </div>
+
+          <div className="day-hero-spark">
+            <div className="spark-head">
+              <span>Last seven days</span>
+              <strong>{formatDurationShort(Math.round(sumBy(sparkValues, (v) => v) * 3600))} tracked</strong>
+            </div>
+            <WeekSpark
+              values={sparkValues}
+              labels={sparkLabels}
+              todayIndex={sparkDays.length - 1}
+              unit="h"
+            />
           </div>
         </Card>
 
@@ -341,7 +392,7 @@ export function TodayPage({ onNavigate, onQuickAdd }: PageProps) {
       <div className="today-metrics">
         {[
           ["fitness", distanceKm > 0 ? `${distanceKm.toFixed(1)} km` : `${activeMinutes} min`, "Movement", dayActivities.length > 0 ? `${dayActivities.length} ${dayActivities.length === 1 ? "activity" : "activities"}` : "None yet"],
-          ["focus", formatDurationShort(focusSeconds), "Study", `${pillars[1][1]}% of goal`],
+          ["focus", formatDurationShort(focusSeconds), "Study", `${pillars[1].value}% of goal`],
           ["food", nutrition === null ? "--" : `${nutrition}%`, "Nutrition", dayNutrition ? "Logged" : "Not logged"],
           ["book", `${readingMinutes}m`, "Reading", `${sumBy(dayReading, (s) => s.pagesRead)} pages`],
         ].map((item, index) => (
@@ -460,15 +511,15 @@ export function TodayPage({ onNavigate, onQuickAdd }: PageProps) {
             <div className="progress-legend">
               <span>
                 <i className="teal" />
-                Focus {pillars[1][1]}%
+                Focus {pillars[1].value}%
               </span>
               <span>
                 <i className="blue" />
-                Movement {pillars[0][1]}%
+                Movement {pillars[0].value}%
               </span>
               <span>
                 <i className="coral" />
-                Habits {pillars[3][1]}%
+                Habits {pillars[3].value}%
               </span>
             </div>
           </div>
@@ -613,7 +664,7 @@ function CoachCard({ onOpen }: { onOpen: () => void }) {
           <Icon name="insights" />
         </span>
         <div>
-          <small>Life OS intelligence</small>
+          <small>Maya intelligence</small>
           <strong>Your daily coach</strong>
         </div>
         <Badge tone="sage">AI</Badge>

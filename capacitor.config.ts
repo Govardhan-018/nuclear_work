@@ -2,7 +2,7 @@ import type { CapacitorConfig } from "@capacitor/cli"
 
 const config: CapacitorConfig = {
   appId: "app.lifeos.tracker",
-  appName: "Life OS",
+  appName: "Maya",
   webDir: "dist",
   android: {
     // The app bundles its own assets, so nothing needs to load over plain HTTP.

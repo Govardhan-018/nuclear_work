@@ -46,7 +46,8 @@
             android:foregroundServiceType="specialUse">
             <property
                 android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
-                android:value="Ongoing timer for a study or reading session started by the user" />
+                android:value="Ongoing timer for a study or reading session started by the user"
+            />
         </service>
 
         <provider

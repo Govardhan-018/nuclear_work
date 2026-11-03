@@ -741,7 +741,7 @@ function AboutSection() {
         </div>
       </div>
       <p className="soft-note">
-        Life OS keeps everything on device. Strava sync and the AI coach are the only features
+        Maya keeps everything on device. Strava sync and the AI coach are the only features
         that reach the network, and both are off until you add your own keys.
       </p>
     </Card>

@@ -1,4 +1,4 @@
-# Life OS
+# Maya
 
 A personal tracker for study, reading, food, tasks, habits and fitness, built
 as a standalone Android app.
@@ -21,7 +21,7 @@ keys in Settings.
 ### Install
 
 1. Go to the repository's **Releases** page and download the latest
-   `life-os-*.apk` on your phone.
+   `maya-*.apk` on your phone.
 2. Open it. Android will ask you to allow installs from your browser or file
    manager the first time; allow it, then install.
 3. Updates install straight over the top. Your data is kept.
@@ -42,7 +42,7 @@ seeded rows; anything you have added yourself stays.
 Strava sync needs an API application of your own. It takes about two minutes.
 
 1. Go to <https://www.strava.com/settings/api> and create an application.
-   - **Application Name:** anything, e.g. `Life OS`
+   - **Application Name:** anything, e.g. `Maya`
    - **Category:** `Data Importer`
    - **Website:** anything, e.g. `https://example.com`
    - **Authorization Callback Domain:** `lifeos.app`
@@ -137,15 +137,15 @@ pnpm android
 Create a keystore once:
 
 ```bash
-keytool -genkey -v -keystore life-os.keystore -alias life-os -keyalg RSA -keysize 2048 -validity 10000
+keytool -genkey -v -keystore maya.keystore -alias maya -keyalg RSA -keysize 2048 -validity 10000
 ```
 
 Then create `android/keystore.properties` (it is gitignored):
 
 ```properties
-storeFile=/absolute/path/to/life-os.keystore
+storeFile=/absolute/path/to/maya.keystore
 storePassword=your-store-password
-keyAlias=life-os
+keyAlias=maya
 keyPassword=your-key-password
 ```
 
@@ -174,9 +174,9 @@ To enable signed builds, add four repository secrets under
 
 | Secret | Value |
 | --- | --- |
-| `ANDROID_KEYSTORE_BASE64` | `base64 -w0 life-os.keystore` |
+| `ANDROID_KEYSTORE_BASE64` | `base64 -w0 maya.keystore` |
 | `ANDROID_KEYSTORE_PASSWORD` | Your store password |
-| `ANDROID_KEY_ALIAS` | `life-os` |
+| `ANDROID_KEY_ALIAS` | `maya` |
 | `ANDROID_KEY_PASSWORD` | Your key password |
 
 Then cut a release:

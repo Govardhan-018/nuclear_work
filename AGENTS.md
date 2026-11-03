@@ -1,4 +1,4 @@
-# Life OS
+# Maya
 
 React + Vite + Tailwind CSS, packaged as a standalone Android app with
 Capacitor. Local-first: everything works offline except Strava sync and the AI

@@ -4,6 +4,7 @@ import { navItems } from "../data"
 import { useSettings } from "../db/settings"
 import { useTaskStats } from "../db/stats"
 import { Icon } from "./Icon"
+import { MayaMark } from "./MayaMark"
 import { Button } from "./UI"
 
 export function Sidebar({
@@ -23,10 +24,8 @@ export function Sidebar({
   return (
     <aside className="sidebar">
       <button className="brand" onClick={() => onNavigate("today")}>
-        <span className="brand-mark">L</span>
-        <span>
-          LIFE <b>OS</b>
-        </span>
+        <span className="brand-mark"><MayaMark size={30} /></span>
+        <span>MAYA</span>
       </button>
       <nav>
         {navItems
@@ -95,11 +94,11 @@ export function Topbar({
         aria-label="Open navigation"
         onClick={onMenu}
       />
-      <button className="mobile-wordmark" aria-label="Life OS" onClick={onSearch}>
-        <span>L</span>
-        <strong>LIFE OS</strong>
+      <button className="mobile-wordmark" aria-label="Maya" onClick={onSearch}>
+        <span><MayaMark size={28} /></span>
+        <strong>MAYA</strong>
       </button>
-      <button className="search" onClick={onSearch} aria-label="Search Life OS">
+      <button className="search" onClick={onSearch} aria-label="Search Maya">
         <Icon name="search" size={18} />
         <span>Search your life...</span>
         <kbd>⌘ K</kbd>

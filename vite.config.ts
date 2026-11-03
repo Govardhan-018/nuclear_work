@@ -31,8 +31,8 @@ export default defineConfig(({ mode }) => {
         injectRegister: null,
         includeAssets: ["favicon.svg", "icons/apple-touch-icon.png", "fonts/*.woff2"],
         manifest: {
-          name: "Life OS",
-          short_name: "Life OS",
+          name: "Maya",
+          short_name: "Maya",
           description:
             "Study, reading, food, tasks, habits and fitness in one offline-first personal tracker.",
           theme_color: "#e8e8e7",

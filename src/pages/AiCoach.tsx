@@ -103,7 +103,7 @@ export function AiCoach({ onClose }: { onClose: () => void }) {
             <Icon name="insights" />
           </span>
           <div>
-            <small>Life OS intelligence</small>
+            <small>Maya intelligence</small>
             <strong>Daily coach</strong>
           </div>
         </div>

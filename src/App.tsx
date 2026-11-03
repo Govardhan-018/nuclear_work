@@ -4,6 +4,7 @@ import { PAGE_IDS, type PageId } from "./types"
 import { MobileNav, Sidebar, Topbar } from "./components/Layout"
 import { Button, Modal } from "./components/UI"
 import { Icon } from "./components/Icon"
+import { MayaMark } from "./components/MayaMark"
 import { initializeDatabase } from "./db/seed"
 import { setSetting, useSettings } from "./db/settings"
 import { useDbReady } from "./db/stats"
@@ -174,8 +175,8 @@ export default function App() {
   if (!booted || !ready) {
     return (
       <div className="app-boot">
-        <span className="brand-mark">L</span>
-        <strong>LIFE OS</strong>
+        <MayaMark size={56} />
+        <strong>MAYA</strong>
         <i />
       </div>
     )
@@ -213,7 +214,7 @@ export default function App() {
         {pages[page]}
 
         <footer>
-          <span>LIFE OS</span>
+          <span>MAYA</span>
           <p>Understand your days. Improve your habits. Build a better life.</p>
           {isNative() && <small>Running offline-first on this device.</small>}
         </footer>

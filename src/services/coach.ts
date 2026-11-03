@@ -6,7 +6,7 @@ import {
 import { addDays, dayKey, formatDuration, lastNDays } from "../lib/date"
 import { chatCompletion, type ChatMessage } from "./groq"
 
-const SYSTEM_PROMPT = `You are the coach inside Life OS, a personal tracking app for study, reading, nutrition, habits and fitness.
+const SYSTEM_PROMPT = `You are the coach inside Maya, a personal tracking app for study, reading, nutrition, habits and fitness.
 
 You are given a factual summary of what the user actually logged. Rules:
 - Ground every claim in the numbers provided. Never invent data.
