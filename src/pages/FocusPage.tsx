@@ -1,6 +1,6 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
 import { Icon } from "../components/Icon"
-import { Badge, Button, Card, EmptyState, PageHeader, Progress, SectionTitle, Segmented } from "../components/UI"
+import { Button, Card, EmptyState, PageHeader, Progress, SectionTitle, Segmented } from "../components/UI"
 import { BarChart, Heatmap } from "../components/Visuals"
 import { Select, type SelectOption } from "../components/Select"
 import { addFocusSession, deleteFocusSession, ensureDefaultSubjects } from "../db/repo"

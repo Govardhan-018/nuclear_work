@@ -413,11 +413,23 @@ textarea {
    ========================================================================== */
 
 :root {
+  /*
+   * The base palette shipped --blue identical to --lavender and --sand
+   * identical to --coral, so two of the five tone choices were
+   * indistinguishable everywhere they were used: subject swatches, charts,
+   * badges and metric icons. Give them their own values at the source so the
+   * whole app benefits, rather than patching the swatches alone.
+   */
+  --blue: #7fb0e3;
+  --blue-soft: #e7f0fa;
+  --sand: #e0bb5c;
+  --sand-soft: #fbf2da;
+
   --tone-teal: var(--teal);
-  --tone-blue: #8fb6e8;
+  --tone-blue: var(--blue);
   --tone-lavender: var(--lavender);
   --tone-coral: var(--coral);
-  --tone-sand: #e3c56a;
+  --tone-sand: var(--sand);
   --tone-forest: #5f8a5a;
   --tone-sage: #9fc08a;
 }
@@ -1406,4 +1418,13 @@ html[data-theme="dark"] .health-completion { color: #1c2116 !important; }
   min-width: var(--tap-sm);
   min-height: var(--tap-sm);
   border-radius: var(--radius-md);
+}
+
+/* The dark theme repeats the same duplication: --blue matched --lavender and
+   --sand matched --coral. Separate them there too. */
+html[data-theme="dark"] {
+  --blue: #8ab4e8;
+  --blue-soft: #28303d;
+  --sand: #e0bb5c;
+  --sand-soft: #38301b;
 }

@@ -411,14 +411,12 @@ h1,h2,h3,.brand { font-family: 'Manrope', sans-serif; }
 
 /* Mobile art direction: dark, tactile and data-forward. */
 @media (max-width: 760px) {
-  :root {
-    --bg:#070807; --surface:#1b1d1c; --surface-2:#252725; --ink:#f7f8f4;
-    --muted:#989d96; --line:#323431; --teal:#c8ff67; --teal-dark:#b9f24e;
-    --teal-soft:#2b381f; --blue:#f7f8f4; --blue-soft:#2a2c2a;
-    --lavender:#c8ff67; --lavender-soft:#2b381f; --coral:#f7a43d;
-    --coral-soft:#3b2b19; --sand:#f7a43d; --sand-soft:#3b2b19;
-    --shadow:0 16px 40px rgba(0,0,0,.25); color-scheme:dark;
-  }
+  /*
+   * A dark mobile palette once lived here. It is overridden by the global
+   * :root further down the file and has had no effect for some time; the
+   * phone has always rendered the light palette. Removed so the file does
+   * not imply otherwise. The rules below it are live.
+   */
   body { background:#cce5aa; }
   .app-shell { background:var(--bg); min-height:100svh; max-width:760px; margin:auto; overflow:hidden; box-shadow:0 30px 80px rgba(28,45,16,.3); }
   .app-main { background:radial-gradient(circle at 95% 2%,rgba(200,255,103,.08),transparent 22rem),var(--bg); }
