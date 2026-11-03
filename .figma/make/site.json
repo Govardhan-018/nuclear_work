@@ -1,0 +1,10 @@
+{
+  "description": "Manage study, reading, meals, tasks, habits, and fitness in one personal growth dashboard, with calendar tracking and insights to build better daily routines.",
+  "robots": {
+    "index": false
+  },
+  "accessibility": {
+    "addBypassLinks": false,
+    "ignoreReducedMotion": false
+  }
+}
