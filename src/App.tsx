@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { navItems } from "./data"
 import { PAGE_IDS, type PageId } from "./types"
-import { MobileNav, Sidebar, Topbar } from "./components/Layout"
+import { MobileNav, PRIMARY_TABS, Sidebar, Topbar } from "./components/Layout"
+import { MoreSheet } from "./components/MoreSheet"
 import { Button, Modal } from "./components/UI"
 import { Icon } from "./components/Icon"
 import { MayaMark } from "./components/MayaMark"
@@ -221,16 +222,11 @@ export default function App() {
 
   return (
     <div className="app-shell">
-      <div className={mobileMenu ? "mobile-drawer open" : "mobile-drawer"}>
-        <Sidebar page={page} onNavigate={navigate} />
-      </div>
-      {mobileMenu && <div className="drawer-scrim" onClick={() => setMobileMenu(false)} />}
       <Sidebar page={page} onNavigate={navigate} />
 
       <main className="app-main">
         <Topbar
           onQuickAdd={() => setQuickAdd(true)}
-          onMenu={() => setMobileMenu(true)}
           onSearch={() => setSearchOpen(true)}
           theme={settings.theme}
           onToggleTheme={() =>
@@ -258,6 +254,15 @@ export default function App() {
       </main>
 
       <MobileNav page={page} onNavigate={navigate} onMore={() => setMobileMenu(true)} />
+
+      {mobileMenu && (
+        <MoreSheet
+          page={page}
+          primary={PRIMARY_TABS}
+          onNavigate={navigate}
+          onClose={() => setMobileMenu(false)}
+        />
+      )}
 
       {quickAdd && <QuickAdd onClose={() => setQuickAdd(false)} onNavigate={navigate} />}
       {searchOpen && (

@@ -5,6 +5,9 @@ import { useSettings } from "../db/settings"
 import { useTaskStats } from "../db/stats"
 import { Icon } from "./Icon"
 import { MayaMark } from "./MayaMark"
+
+/** Destinations on the bottom bar. Everything else lives in the More sheet. */
+export const PRIMARY_TABS: PageId[] = ["today", "focus", "food", "fitness"]
 import { Button } from "./UI"
 
 export function Sidebar({
@@ -65,13 +68,11 @@ export function Sidebar({
 
 export function Topbar({
   onQuickAdd,
-  onMenu,
   onSearch,
   theme,
   onToggleTheme,
 }: {
   onQuickAdd: () => void
-  onMenu: () => void
   onSearch: () => void
   theme: "light" | "dark"
   onToggleTheme: () => void
@@ -87,13 +88,6 @@ export function Topbar({
 
   return (
     <div className={`topbar ${scrolled ? "scrolled" : ""}`}>
-      <Button
-        variant="icon"
-        icon="menu"
-        className="mobile-menu"
-        aria-label="Open navigation"
-        onClick={onMenu}
-      />
       <button className="mobile-wordmark" aria-label="Maya" onClick={onSearch}>
         <span><MayaMark size={28} /></span>
         <strong>MAYA</strong>
@@ -134,12 +128,11 @@ export function MobileNav({
   onNavigate: (p: PageId) => void
   onMore: () => void
 }) {
-  const primary: PageId[] = ["today", "focus", "food", "fitness"]
-  const items = primary
+  const items = PRIMARY_TABS
     .map((id) => navItems.find((item) => item.id === id))
     .filter((item): item is (typeof navItems)[number] => item !== undefined)
 
-  const moreActive = !primary.includes(page)
+  const moreActive = !PRIMARY_TABS.includes(page)
 
   return (
     <nav className="mobile-nav">
