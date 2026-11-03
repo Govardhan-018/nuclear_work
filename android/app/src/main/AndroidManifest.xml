@@ -33,6 +33,22 @@
             </intent-filter>
         </activity>
 
+        <!--
+            A user-visible timer does not match any of Android 14's specific
+            foreground service types, so it declares specialUse. It runs only
+            while a session the user explicitly started is in progress, and is
+            stopped the moment that session ends.
+        -->
+        <service
+            android:name=".SessionService"
+            android:exported="false"
+            android:stopWithTask="false"
+            android:foregroundServiceType="specialUse">
+            <property
+                android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
+                android:value="Ongoing timer for a study or reading session started by the user" />
+        </service>
+
         <provider
             android:name="androidx.core.content.FileProvider"
             android:authorities="${applicationId}.fileprovider"
@@ -47,6 +63,15 @@
     <!-- Strava sync and the AI coach are the only features that use the network. -->
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+
+    <!--
+        An ongoing notification for a running study or reading session.
+        POST_NOTIFICATIONS is requested at runtime on Android 13+; the session
+        still runs if it is refused, just without the notification.
+    -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
 
     <!--
         The share sheet used when exporting a backup needs to know which apps

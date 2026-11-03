@@ -14,6 +14,7 @@ import type { ActiveFocusSession, FocusSessionType } from "../db/types"
 import { SubjectManager } from "./SubjectManager"
 import { AddBookSheet } from "../components/BookForm"
 import { ReadingPagesPrompt } from "./ReadingPrompt"
+import { sessionNotification } from "../services/sessionNotification"
 import { FocusSessionOverlay, type SessionView } from "./FocusSession"
 import type { PageProps } from "./shared"
 
@@ -135,6 +136,33 @@ export function FocusPage(_props: PageProps) {
   const targetSeconds = targetMinutes * 60
   const remaining = Math.max(0, targetSeconds - elapsedSeconds)
 
+  /*
+   * Mirror the session into the Android notification. Driven by state rather
+   * than by each handler, so the notification cannot drift out of step with
+   * what the app believes is running.
+   */
+  useEffect(() => {
+    if (!sessionNotification.supported()) return
+    if (!active || finished) {
+      void sessionNotification.hide()
+      return
+    }
+    const elapsed = accumulatedMs + (runningSince !== null ? Date.now() - runningSince : 0)
+    const remainingMs = Math.max(0, targetSeconds * 1000 - elapsed)
+    void sessionNotification.show({
+      title: `${sessionType} session`,
+      subject: target?.name ?? "Focus",
+      running: runningSince !== null,
+      countDown: mode === "Timer",
+      // Android's chronometer counts to this instant, or up from it.
+      base: mode === "Timer" ? Date.now() + remainingMs : Date.now() - elapsed,
+      staticTime: formatClock(mode === "Timer" ? Math.floor(remainingMs / 1000) : Math.floor(elapsed / 1000)),
+    })
+    // Deliberately not keyed on elapsed time: the chronometer ticks in the
+    // system UI, so a redraw is only needed when the state itself changes.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [active, finished, runningSince, accumulatedMs, mode, sessionType, targetSeconds, target?.name])
+
   const save = useCallback(
     async (seconds: number, completed: boolean) => {
       if (seconds < MIN_SAVED_SECONDS || saving.current) return
@@ -165,6 +193,7 @@ export function FocusPage(_props: PageProps) {
     setOverlayOpen(false)
     setFinished(false)
     persist(null)
+    void sessionNotification.hide()
   }, [persist])
 
   /* A countdown that reaches zero saves itself and shows the completion state. */
@@ -204,6 +233,12 @@ export function FocusPage(_props: PageProps) {
       else setManagingSubjects(true)
       return
     }
+    // Asked here rather than at launch, so the prompt has obvious context.
+    if (sessionNotification.supported()) {
+      void sessionNotification.granted().then((granted) => {
+        if (!granted) void sessionNotification.requestPermission()
+      })
+    }
     const now = Date.now()
     const begin = startedAt ?? now
     setFinished(false)
@@ -226,6 +261,19 @@ export function FocusPage(_props: PageProps) {
     setRunningSince(now)
     persist(snapshot({ runningSince: now }))
   }
+
+  /*
+   * Pause / Resume / Stop on the notification. The service forwards the tap
+   * rather than acting on it, so there is one implementation of each and the
+   * two surfaces cannot disagree.
+   */
+  useEffect(() => {
+    return sessionNotification.onAction((action) => {
+      if (action === "pause") pause()
+      else if (action === "resume") resume()
+      else if (action === "stop") void endSession()
+    })
+  })
 
   const endSession = async () => {
     const seconds = Math.floor(
