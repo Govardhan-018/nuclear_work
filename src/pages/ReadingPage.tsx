@@ -1,5 +1,4 @@
 import { useMemo, useState } from "react"
-import { Icon } from "../components/Icon"
 import { Badge, Button, Card, EmptyState, Modal, PageHeader, Progress, SectionTitle, Segmented } from "../components/UI"
 import { Heatmap } from "../components/Visuals"
 import { addReadingSession, createBook, deleteBook, logReadingProgress, updateBook } from "../db/repo"

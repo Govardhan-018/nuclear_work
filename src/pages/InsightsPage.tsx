@@ -9,7 +9,7 @@ import {
   useReadingStats, useTaskStats,
 } from "../db/stats"
 import {
-  addDays, dayKey, formatDuration, formatShortDate, fromDayKey, lastNDays,
+  addDays, dayKey, formatDuration, formatShortDate, lastNDays,
 } from "../lib/date"
 import type { PageProps } from "./shared"
 

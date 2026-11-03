@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react"
 import { Icon } from "../components/Icon"
-import { Badge, Button, Card, EmptyState, Modal, PageHeader, SectionTitle, Segmented } from "../components/UI"
+import { Button, Card, EmptyState, Modal, PageHeader, SectionTitle, Segmented } from "../components/UI"
 import { Heatmap } from "../components/Visuals"
 import { createEvent, deleteEvent } from "../db/repo"
 import {
@@ -21,7 +21,7 @@ const METRICS: Metric[] = [
 
 const EFFORT_LABELS = ["Rest", "Light", "Moderate", "Strong", "Peak"]
 
-export function CalendarPage({ onNavigate }: PageProps) {
+export function CalendarPage(_props: PageProps) {
   const [cursor, setCursor] = useState(() => new Date())
   const [selected, setSelected] = useState<DayKey>(dayKey())
   const [view, setView] = useState<"Month" | "Week" | "Day">("Month")

@@ -18,7 +18,6 @@ import type { PageProps } from "./shared"
 const APP_VERSION = "1.0.0"
 
 export function SettingsPage(_props: PageProps) {
-  const settings = useSettings()
   const [toast, setToast] = useState<{ kind: "ok" | "error"; text: string } | null>(null)
 
   /* Auto-dismiss feedback so the page does not accumulate stale banners. */
