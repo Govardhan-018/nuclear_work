@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
 import { Icon } from "../components/Icon"
 import { Badge, Button, Card, Modal, PageHeader, SectionTitle } from "../components/UI"
 import { clearAllData } from "../db/repo"
@@ -14,6 +14,11 @@ import {
 } from "../services/groq"
 import { Select, type SelectOption } from "../components/Select"
 import { isNative, isOnline, platformName } from "../services/platform"
+import { sessionNotification, type NotificationStatus } from "../services/sessionNotification"
+import {
+  ensureExactAlarms, ensureReminderPermission, pendingReminderCount,
+  sendTestReminder, syncTaskReminders,
+} from "../services/taskReminders"
 import { formatRelative } from "../lib/date"
 import { useActivities, useBooks, useFocusSessions, useHabits, useTasks } from "../db/stats"
 import type { PageProps } from "./shared"
@@ -52,6 +57,7 @@ export function SettingsPage(_props: PageProps) {
 
       <ProfileSection />
       <TargetsSection />
+      <NotificationsSection onNotify={notify} />
       <StravaSection onNotify={notify} />
       <AiSection onNotify={notify} />
       <DataSection onNotify={notify} />
@@ -147,6 +153,185 @@ function TargetsSection() {
           }
         />
       </label>
+    </Card>
+  )
+}
+
+function NotificationsSection({
+  onNotify,
+}: {
+  onNotify: (k: "ok" | "error", t: string) => void
+}) {
+  const settings = useSettings()
+  const [status, setStatus] = useState<NotificationStatus | null>(null)
+  const [pending, setPending] = useState(0)
+  const [busy, setBusy] = useState<string | null>(null)
+
+  const refresh = useCallback(async () => {
+    setStatus(await sessionNotification.status())
+    setPending(await pendingReminderCount())
+  }, [])
+
+  useEffect(() => {
+    void refresh()
+  }, [refresh])
+
+  if (!sessionNotification.supported()) {
+    return (
+      <Card className="settings-card">
+        <SectionTitle
+          title="Notifications"
+          subtitle="Available in the Android app"
+        />
+        <p className="soft-note">
+          The browser cannot show a live timer or schedule a reminder that
+          survives the tab closing, so notifications only run on the installed
+          app.
+        </p>
+      </Card>
+    )
+  }
+
+  const granted = status?.granted ?? false
+  const muted = granted && status?.channelEnabled === false
+
+  return (
+    <Card className="settings-card">
+      <SectionTitle
+        title="Notifications"
+        subtitle="The running timer, and reminders when a task is due"
+        action={
+          <Badge tone={granted && !muted ? "sage" : "coral"}>
+            {!granted ? "Off" : muted ? "Muted" : "On"}
+          </Badge>
+        }
+      />
+
+      {!granted && (
+        <div className="settings-help">
+          <Icon name="alert" size={16} />
+          <div>
+            <p>
+              Android has not granted notification permission, so neither the
+              session timer nor task reminders can appear.
+            </p>
+          </div>
+        </div>
+      )}
+
+      {muted && (
+        <div className="settings-help">
+          <Icon name="alert" size={16} />
+          <div>
+            <p>
+              Permission is granted but the channel is switched off in Android
+              settings, so nothing will show.
+            </p>
+          </div>
+        </div>
+      )}
+
+      <div className="settings-row">
+        <div>
+          <strong>Task reminders</strong>
+          <small>Notify when a task with a due time is about to be due.</small>
+        </div>
+        <button
+          className={`switch ${settings.taskRemindersEnabled ? "on" : ""}`}
+          role="switch"
+          aria-checked={settings.taskRemindersEnabled}
+          aria-label="Task reminders"
+          onClick={async () => {
+            const next = !settings.taskRemindersEnabled
+            await setSetting("taskRemindersEnabled", next)
+            if (next) {
+              await ensureReminderPermission()
+              await ensureExactAlarms()
+            }
+            const result = await syncTaskReminders()
+            await refresh()
+            onNotify(
+              "ok",
+              next
+                ? `Reminders on. ${result.scheduled} scheduled.`
+                : "Reminders off.",
+            )
+          }}
+        >
+          <i />
+        </button>
+      </div>
+
+      <label className="field">
+        <span>Remind me this many minutes before</span>
+        <input
+          type="number"
+          inputMode="numeric"
+          min={0}
+          max={1440}
+          value={settings.taskReminderLeadMinutes}
+          onChange={(e) =>
+            void setSetting(
+              "taskReminderLeadMinutes",
+              Math.min(1440, Math.max(0, Number(e.target.value) || 0)),
+            )
+          }
+          onBlur={() => void syncTaskReminders().then(refresh)}
+        />
+      </label>
+
+      <div className="settings-counts">
+        <div>
+          <strong>{pending}</strong>
+          <span>scheduled</span>
+        </div>
+        <div>
+          <strong>{settings.taskReminderLeadMinutes}m</strong>
+          <span>lead time</span>
+        </div>
+      </div>
+
+      <div className="settings-actions">
+        <Button
+          variant="secondary"
+          icon="alert"
+          disabled={busy !== null}
+          onClick={async () => {
+            setBusy("test")
+            const ok = await sendTestReminder()
+            await refresh()
+            setBusy(null)
+            onNotify(
+              ok ? "ok" : "error",
+              ok
+                ? "A test reminder will arrive in about five seconds."
+                : "Could not schedule a test. Check the permission below.",
+            )
+          }}
+        >
+          {busy === "test" ? "Sending…" : "Send a test"}
+        </Button>
+        <Button
+          variant="secondary"
+          icon="sync"
+          disabled={busy !== null}
+          onClick={async () => {
+            setBusy("sync")
+            const result = await syncTaskReminders()
+            await refresh()
+            setBusy(null)
+            onNotify("ok", `${result.scheduled} reminder(s) scheduled.`)
+          }}
+        >
+          {busy === "sync" ? "Rescheduling…" : "Reschedule"}
+        </Button>
+        <Button
+          icon="settings"
+          onClick={() => void sessionNotification.openSettings()}
+        >
+          Android settings
+        </Button>
+      </div>
     </Card>
   )
 }

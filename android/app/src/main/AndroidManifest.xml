@@ -75,6 +75,16 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
 
     <!--
+        Task reminders. SCHEDULE_EXACT_ALARM is requested at runtime on
+        Android 12+; without it the system may delay a reminder, which is
+        preferable to not having one, so it is not required.
+        RECEIVE_BOOT_COMPLETED lets pending reminders survive a restart.
+    -->
+    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+    <uses-permission android:name="android.permission.VIBRATE" />
+
+    <!--
         The share sheet used when exporting a backup needs to know which apps
         can receive a JSON file.
     -->

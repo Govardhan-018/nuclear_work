@@ -51,6 +51,7 @@ export function FocusPage(_props: PageProps) {
   const [bookId, setBookId] = useState<string | null>(null)
   const [addingBook, setAddingBook] = useState(false)
   const [pendingRead, setPendingRead] = useState<{ bookId: string; seconds: number } | null>(null)
+  const [notifyBlocked, setNotifyBlocked] = useState(false)
   const active = runningSince !== null || accumulatedMs > 0
 
   useEffect(() => {
@@ -161,6 +162,10 @@ export function FocusPage(_props: PageProps) {
       // Android's chronometer counts to this instant, or up from it.
       base: mode === "Timer" ? Date.now() + remainingMs : Date.now() - elapsed,
       staticTime: formatClock(mode === "Timer" ? Math.floor(remainingMs / 1000) : Math.floor(elapsed / 1000)),
+    }).then((result) => {
+      // Surfaced rather than swallowed: a silent failure here is why the
+      // notification appeared to do nothing at all.
+      setNotifyBlocked(!result.ok && result.reason === "permission")
     })
     // Deliberately not keyed on elapsed time: the chronometer ticks in the
     // system UI, so a redraw is only needed when the state itself changes.
@@ -231,17 +236,22 @@ export function FocusPage(_props: PageProps) {
     [target, reading, subject, book, sessionType, mode, targetMinutes, startedAt, accumulatedMs, runningSince],
   )
 
-  const start = () => {
+  const start = async () => {
     if (!target) {
       if (reading) setAddingBook(true)
       else setManagingSubjects(true)
       return
     }
-    // Asked here rather than at launch, so the prompt has obvious context.
+
+    /*
+     * Ask before the session starts, and wait for the answer. Previously the
+     * request was fired without awaiting, so the first notification was
+     * published while the permission was still pending, was refused, and was
+     * never retried.
+     */
     if (sessionNotification.supported()) {
-      void sessionNotification.granted().then((granted) => {
-        if (!granted) void sessionNotification.requestPermission()
-      })
+      const granted = await sessionNotification.ensurePermission()
+      setNotifyBlocked(!granted)
     }
     const now = Date.now()
     const begin = startedAt ?? now
@@ -382,6 +392,20 @@ export function FocusPage(_props: PageProps) {
           }}
         />
       </div>
+      {notifyBlocked && sessionNotification.supported() && (
+        <button
+          className="notify-blocked"
+          onClick={() => void sessionNotification.openSettings()}
+        >
+          <Icon name="alert" size={17} />
+          <span>
+            <strong>Notifications are off</strong>
+            <small>The timer still runs. Tap to turn them on.</small>
+          </span>
+          <Icon name="chevronRight" size={16} />
+        </button>
+      )}
+
       {active && !overlayOpen && (
         <button className="resume-banner" onClick={() => setOverlayOpen(true)}>
           <span className={`pulse-dot ${runningSince !== null ? "" : "paused"}`} />
@@ -497,7 +521,7 @@ export function FocusPage(_props: PageProps) {
         <Button
           icon="play"
           className="wide start-button"
-          onClick={active ? () => setOverlayOpen(true) : start}
+          onClick={active ? () => setOverlayOpen(true) : () => void start()}
         >
           {active ? "Return to session" : `Start ${activity} session`}
         </Button>

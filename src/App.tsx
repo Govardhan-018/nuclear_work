@@ -12,6 +12,8 @@ import {
   applyNativeTheme, hideSplash, registerBackButton, registerDeepLinks,
 } from "./native"
 import { isNative } from "./services/platform"
+import { onReminderTapped, syncTaskReminders } from "./services/taskReminders"
+import { db } from "./db/db"
 import { TodayPage } from "./pages/TodayPage"
 import { CalendarPage } from "./pages/CalendarPage"
 import { FocusPage } from "./pages/FocusPage"
@@ -136,6 +138,41 @@ export default function App() {
       }),
     [searchOpen, quickAdd, mobileMenu, page],
   )
+
+  /*
+   * Keep task reminders in step with the tasks themselves. Rebuilding the
+   * whole pending set on every change is cheaper than tracking individual
+   * schedule and cancel calls, which drift the moment an edit is missed.
+   * Debounced so a burst of edits schedules once.
+   */
+  useEffect(() => {
+    if (!isNative()) return
+    let timer: number | undefined
+    const rebuild = () => {
+      window.clearTimeout(timer)
+      timer = window.setTimeout(() => void syncTaskReminders(), 800)
+    }
+    rebuild()
+    db.tasks.hook("creating", rebuild)
+    db.tasks.hook("updating", rebuild)
+    db.tasks.hook("deleting", rebuild)
+    // A reboot, a date change or an edit made elsewhere can invalidate the
+    // pending set, so rebuild whenever the app comes back to the foreground.
+    const onResume = () => {
+      if (document.visibilityState === "visible") void syncTaskReminders()
+    }
+    document.addEventListener("visibilitychange", onResume)
+    return () => {
+      window.clearTimeout(timer)
+      db.tasks.hook("creating").unsubscribe(rebuild)
+      db.tasks.hook("updating").unsubscribe(rebuild)
+      db.tasks.hook("deleting").unsubscribe(rebuild)
+      document.removeEventListener("visibilitychange", onResume)
+    }
+  }, [])
+
+  /* Tapping a reminder opens the task list. */
+  useEffect(() => onReminderTapped(() => navigate("tasks")), [navigate])
 
   /* Strava's OAuth redirect comes back as a deep link. */
   useEffect(

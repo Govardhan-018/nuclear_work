@@ -242,6 +242,9 @@ export type AppSettings = {
   theme: "light" | "dark"
   demoData: boolean
   onboarded: boolean
+  /** Minutes before a task's due time to notify. 0 means at the due time. */
+  taskReminderLeadMinutes: number
+  taskRemindersEnabled: boolean
   focusDailyTargetMinutes: number
   readingDailyTargetMinutes: number
   waterDailyTarget: number
@@ -262,6 +265,8 @@ export const DEFAULT_SETTINGS: AppSettings = {
   theme: "light",
   demoData: true,
   onboarded: false,
+  taskReminderLeadMinutes: 10,
+  taskRemindersEnabled: true,
   focusDailyTargetMinutes: 240,
   readingDailyTargetMinutes: 30,
   waterDailyTarget: 8,
