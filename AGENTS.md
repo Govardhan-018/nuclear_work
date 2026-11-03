@@ -25,7 +25,9 @@ path is missing, or when the repository contradicts this guide.
 - `capacitor.config.ts` - Native app id, splash, status bar, CapacitorHttp
 - `vite.config.ts` - Vite + React + Tailwind + PWA + the Figma Make plugins,
   with `@` aliased to `src`
-- `android/` - Capacitor Android project (committed; build outputs are not)
+- `android/` - Capacitor Android project (committed; build outputs are not).
+  `MainActivity` publishes the window insets; `SessionService` and
+  `SessionNotificationPlugin` provide the ongoing timer notification.
 - `assets/` - Icon and splash sources for `pnpm assets`
 
 ### `src/db/` - the data layer
@@ -47,6 +49,8 @@ path is missing, or when the repository contradicts this guide.
 - `platform.ts` - The single HTTP entry point. Uses CapacitorHttp natively so
   requests are not subject to the WebView's CORS policy.
 - `strava.ts` - OAuth, token refresh, incremental activity import.
+- `sessionNotification.ts` - Wraps the Android foreground-service plugin that
+  shows the ongoing timer notification. No-ops on the web.
 - `groq.ts` - Chat completions against the Groq API (OpenAI-compatible).
 - `coach.ts` - Builds the factual digest sent to the model, plus the on-device
   rule-based brief used when offline or without a key.
@@ -56,13 +60,19 @@ path is missing, or when the repository contradicts this guide.
 
 `TodayPage`, `CalendarPage`, `FocusPage`, `ReadingPage`, `FoodPage`,
 `TasksPage`, `HabitsPage`, `FitnessPage`, `InsightsPage`, `LibraryPage`,
-`SettingsPage`, plus `AiCoach` and shared helpers in `shared.ts`.
+`SettingsPage`, plus `AiCoach`, `SubjectManager`, `FocusSession` (the
+immersive session screen), `ReadingPrompt` and shared helpers in `shared.ts`.
 
 ### `src/components/` and `src/lib/`
 
-`Icon`, `UI` (Button, Card, Modal, Badge, Progress, …), `Visuals` (charts),
-`Sheet` (BottomSheet), `Select`, `Skeleton`, and `lib/date.ts`,
-`lib/polyline.ts`.
+`Icon`, `MayaMark` (the app mark, inlined), `UI` (Button, Card, Modal, Badge,
+Progress, …), `Visuals` (charts), `PillarRing` and `WeekSpark` (dashboard),
+`Sheet` (BottomSheet), `Select`, `BookForm`, `Skeleton`, and `lib/date.ts`,
+`lib/media.ts`, `lib/polyline.ts`.
+
+`lib/media.ts` holds the book/podcast vocabulary. A record's `kind` decides
+whether its progress counter means pages or episodes; no screen should
+hardcode "pages".
 
 ### `src/styles/system.css`
 
@@ -120,6 +130,24 @@ screen rather than introducing a parallel utility-based style.
   itself should grow.
 - **Use `Select`, not `<select>`.** The native control renders as an unstyled
   system dialog on Android.
+- **Overlays portal to `<body>`.** An ancestor transform — including a filling
+  CSS animation — becomes the containing block for `position: fixed` and will
+  crop a sheet to its card. Z-index order lives in one block in system.css.
+- **Do not put `overflow: hidden` on `.app-shell` or `.page`.** It makes them
+  scroll containers and silently disables the sticky header; use
+  `overflow-x: clip`.
+
+## Naming
+
+The app is **Maya**. Three identifiers keep the old name on purpose, and
+changing them breaks existing installs:
+
+- `applicationId` `app.lifeos.tracker` — changing it installs a second app
+  rather than updating the first.
+- The Dexie database `life-os` — a new name opens an empty database and looks
+  like data loss.
+- The Strava deep link `lifeos://lifeos.app` — the Authorization Callback
+  Domain is already registered against it on the user's Strava API app.
 
 ## Commands
 
