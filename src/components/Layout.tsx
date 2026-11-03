@@ -1,5 +1,7 @@
 import type { PageId } from "../types"
 import { navItems } from "../data"
+import { useSettings } from "../db/settings"
+import { useTaskStats } from "../db/stats"
 import { Icon } from "./Icon"
 import { Button } from "./UI"
 
@@ -10,6 +12,13 @@ export function Sidebar({
   page: PageId
   onNavigate: (page: PageId) => void
 }) {
+  const settings = useSettings()
+  const tasks = useTaskStats()
+  const name = settings.profileName.trim()
+  const initials = name
+    ? name.split(/\s+/).slice(0, 2).map((part) => part[0]?.toUpperCase() ?? "").join("")
+    : "LO"
+
   return (
     <aside className="sidebar">
       <button className="brand" onClick={() => onNavigate("today")}>
@@ -19,27 +28,32 @@ export function Sidebar({
         </span>
       </button>
       <nav>
-        {navItems.map((item) => (
-          <button
-            key={item.id}
-            className={page === item.id ? "active" : ""}
-            onClick={() => onNavigate(item.id as PageId)}
-          >
-            <Icon name={item.icon} />
-            <span>{item.label}</span>
-            {item.id === "tasks" && <em>3</em>}
-          </button>
-        ))}
+        {navItems
+          .filter((item) => item.id !== "settings")
+          .map((item) => (
+            <button
+              key={item.id}
+              className={page === item.id ? "active" : ""}
+              onClick={() => onNavigate(item.id as PageId)}
+            >
+              <Icon name={item.icon} />
+              <span>{item.label}</span>
+              {item.id === "tasks" && tasks.open.length > 0 && <em>{tasks.open.length}</em>}
+            </button>
+          ))}
       </nav>
       <div className="sidebar-bottom">
-        <button>
+        <button
+          className={page === "settings" ? "active" : ""}
+          onClick={() => onNavigate("settings")}
+        >
           <Icon name="settings" />
           <span>Settings</span>
         </button>
-        <button className="profile">
-          <span className="avatar">AM</span>
+        <button className="profile" onClick={() => onNavigate("settings")}>
+          <span className="avatar">{initials}</span>
           <span>
-            <strong>Alex Morgan</strong>
+            <strong>{name || "Set your name"}</strong>
             <small>Personal workspace</small>
           </span>
           <Icon name="more" />
@@ -71,7 +85,7 @@ export function Topbar({
         aria-label="Open navigation"
         onClick={onMenu}
       />
-      <button className="mobile-wordmark" aria-label="Life OS">
+      <button className="mobile-wordmark" aria-label="Life OS" onClick={onSearch}>
         <span>L</span>
         <strong>LIFE OS</strong>
       </button>
@@ -96,24 +110,28 @@ export function Topbar({
         <Button variant="secondary" icon="plus" onClick={onQuickAdd}>
           Quick add
         </Button>
-        <button className="notification">
-          <span />
-        </button>
       </div>
     </div>
   )
 }
 
+/** Bottom tab bar. The fifth slot opens the drawer so every page is reachable. */
 export function MobileNav({
   page,
   onNavigate,
+  onMore,
 }: {
   page: PageId
   onNavigate: (p: PageId) => void
+  onMore: () => void
 }) {
-  const items = navItems.filter((i) =>
-    ["today", "focus", "food", "fitness"].includes(i.id),
-  )
+  const primary: PageId[] = ["today", "focus", "food", "fitness"]
+  const items = primary
+    .map((id) => navItems.find((item) => item.id === id))
+    .filter((item): item is (typeof navItems)[number] => item !== undefined)
+
+  const moreActive = !primary.includes(page)
+
   return (
     <nav className="mobile-nav">
       {items.map((item) => (
@@ -126,6 +144,10 @@ export function MobileNav({
           <small>{item.label}</small>
         </button>
       ))}
+      <button className={moreActive ? "active" : ""} onClick={onMore} aria-label="More pages">
+        <Icon name="menu" />
+        <small>More</small>
+      </button>
     </nav>
   )
 }

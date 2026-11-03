@@ -6,6 +6,14 @@ import type {
   NutritionLog, ReadingSession, Task,
 } from "./types"
 
+/** Prefix marking a row as generated demo content. */
+export const DEMO_PREFIX = "demo:"
+
+/** Stable id for a demo row, so re-seeding replaces rather than duplicates. */
+function demoId(kind: string, index: number | string): string {
+  return `${DEMO_PREFIX}${kind}:${index}`
+}
+
 /** Deterministic PRNG so demo data is identical on every device and reseed. */
 function makeRandom(seed: number) {
   let state = seed >>> 0
@@ -44,7 +52,7 @@ export async function seedDemoData(): Promise<void> {
   const today = startOfDay()
 
   /* habits + logs */
-  const habits: Habit[] = DEMO_HABITS.map((h) => ({ ...h, id: uid(), ...newMeta(now) }))
+  const habits: Habit[] = DEMO_HABITS.map((h, i) => ({ ...h, id: demoId("habit", i), ...newMeta(now) }))
   const habitLogs: HabitLog[] = []
   habits.forEach((habit, index) => {
     // Each habit gets its own reliability, so streaks differ realistically.
@@ -65,9 +73,9 @@ export async function seedDemoData(): Promise<void> {
   })
 
   /* books + reading sessions */
-  const books: Book[] = DEMO_BOOKS.map((b) => ({
+  const books: Book[] = DEMO_BOOKS.map((b, i) => ({
     ...b,
-    id: uid(),
+    id: demoId("book", i),
     startedAt: b.status === "Want to read" ? null : addDays(today, -60).getTime(),
     finishedAt: b.status === "Completed" ? addDays(today, -21).getTime() : null,
     ...newMeta(now),
@@ -80,7 +88,7 @@ export async function seedDemoData(): Promise<void> {
     const date = addDays(today, -back)
     const minutes = 15 + Math.floor(random() * 45)
     readingSessions.push({
-      id: uid(),
+      id: demoId("reading", back),
       bookId: book.id,
       date: dayKey(date),
       startedAt: date.getTime() + 20 * 3600_000,
@@ -106,7 +114,7 @@ export async function seedDemoData(): Promise<void> {
       const seconds = (20 + Math.floor(random() * 50)) * 60
       const startedAt = date.getTime() + hour * 3600_000 + Math.floor(random() * 1800) * 1000
       focusSessions.push({
-        id: uid(),
+        id: demoId("focus", `${back}-${i}`),
         subject,
         type: random() < 0.78 ? "Academic" : "Reading",
         mode: random() < 0.8 ? "Timer" : "Stopwatch",
@@ -139,7 +147,7 @@ export async function seedDemoData(): Promise<void> {
       fruit: random() < 0.66,
       water: 4 + Math.floor(random() * 5),
       energy: energyLevels[Math.min(3, 1 + Math.floor(random() * 3))],
-      note: "",
+      note: DEMO_PREFIX,
       ...newMeta(now),
     })
   }
@@ -158,7 +166,7 @@ export async function seedDemoData(): Promise<void> {
       if (random() > 0.85) continue
       const options = mealNames[type]
       meals.push({
-        id: uid(),
+        id: demoId("meal", `${date}-${type}`),
         date,
         type,
         name: options[Math.floor(random() * options.length)],
@@ -189,7 +197,7 @@ export async function seedDemoData(): Promise<void> {
       : Math.round((35 + random() * 30) * 60)
     const startedAt = date.getTime() + (7 + Math.floor(random() * 12)) * 3600_000
     activities.push({
-      id: uid("demo"),
+      id: demoId("activity", back),
       source: "manual",
       name: kind.name,
       type: kind.type,
@@ -218,8 +226,8 @@ export async function seedDemoData(): Promise<void> {
     ["Tidy reading notes", "Personal", "Low", null, 0],
     ["Submit lab report", "Study", "High", addDays(today, -2).getTime() + 17 * 3600_000, 1],
   ]
-  const tasks: Task[] = demoTasks.map(([title, category, priority, dueAt, done]) => ({
-    id: uid(),
+  const tasks: Task[] = demoTasks.map(([title, category, priority, dueAt, done], i) => ({
+    id: demoId("task", i),
     title,
     notes: "",
     category,
@@ -236,7 +244,7 @@ export async function seedDemoData(): Promise<void> {
     { title: "Gym session", date: dayKey(today), startTime: "18:00", endTime: "19:00", category: "Fitness" },
     { title: "Study group", date: dayKey(addDays(today, 1)), startTime: "15:00", endTime: "16:30", category: "Study" },
     { title: "Long run", date: dayKey(addDays(today, 4)), startTime: "07:30", endTime: "09:00", category: "Fitness" },
-  ].map((e) => ({ ...e, id: uid(), note: "", ...newMeta(now) }))
+  ].map((e, i) => ({ ...e, id: demoId("event", i), note: "", ...newMeta(now) }))
 
   await db.transaction(
     "rw",
@@ -257,25 +265,41 @@ export async function seedDemoData(): Promise<void> {
   )
 }
 
-/** Removes only demo-generated rows, keeping anything the user created. */
+/**
+ * Removes only demo-generated rows. Every seeded record carries the `demo:`
+ * id prefix, so anything the user created themselves survives untouched.
+ */
 export async function removeDemoData(): Promise<void> {
-  const demoActivities = await db.activities
-    .filter((a) => a.id.startsWith("demo:"))
-    .primaryKeys()
-  await db.activities.bulkDelete(demoActivities)
-  // Everything else seeded before the user's first real entry is cleared
-  // wholesale; the Settings copy warns that turning demo data off resets
-  // these tables.
+  const isDemo = (row: { id: string }) => row.id.startsWith(DEMO_PREFIX)
+
   await db.transaction(
     "rw",
     [db.tasks, db.habits, db.habitLogs, db.books, db.readingSessions,
-     db.focusSessions, db.nutritionLogs, db.meals, db.events],
+     db.focusSessions, db.nutritionLogs, db.meals, db.activities, db.events],
     async () => {
-      await Promise.all([
-        db.tasks.clear(), db.habits.clear(), db.habitLogs.clear(),
-        db.books.clear(), db.readingSessions.clear(), db.focusSessions.clear(),
-        db.nutritionLogs.clear(), db.meals.clear(), db.events.clear(),
-      ])
+      const habitIds = await db.habits.filter(isDemo).primaryKeys()
+      await db.habits.bulkDelete(habitIds)
+      // Habit logs are keyed `${habitId}:${date}`, so they go with their habit.
+      const orphanLogs = await db.habitLogs
+        .filter((log) => log.habitId.startsWith(DEMO_PREFIX))
+        .primaryKeys()
+      await db.habitLogs.bulkDelete(orphanLogs)
+
+      for (const table of [
+        db.tasks, db.books, db.readingSessions, db.focusSessions,
+        db.meals, db.activities, db.events,
+      ]) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const ids = await (table as any).filter(isDemo).primaryKeys()
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        await (table as any).bulkDelete(ids)
+      }
+
+      // Nutrition logs are keyed by date, so they are tagged by their note.
+      const demoNutrition = await db.nutritionLogs
+        .filter((log) => log.note === DEMO_PREFIX)
+        .primaryKeys()
+      await db.nutritionLogs.bulkDelete(demoNutrition)
     },
   )
 }
@@ -355,11 +379,22 @@ async function migrateLegacyLocalStorage(): Promise<boolean> {
   }
 }
 
+let initPromise: Promise<void> | null = null
+
 /**
  * Runs once at startup: migrates any legacy data, then seeds demo content on a
  * genuinely empty first launch.
+ *
+ * Guarded by a module-level promise because React StrictMode invokes mount
+ * effects twice in development; without it both passes see an empty database
+ * and seed a duplicate set of demo rows.
  */
-export async function initializeDatabase(): Promise<void> {
+export function initializeDatabase(): Promise<void> {
+  initPromise ??= runInitialization()
+  return initPromise
+}
+
+async function runInitialization(): Promise<void> {
   const settingsCount = await db.settings.count()
   const alreadyInitialized = settingsCount > 0
 

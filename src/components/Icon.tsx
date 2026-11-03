@@ -107,6 +107,110 @@ const paths: Record<string, React.ReactNode> = {
     </>
   ),
   moon: <path d="M20 15.5A8.4 8.4 0 0 1 8.5 4 8.5 8.5 0 1 0 20 15.5z" />,
+  trash: (
+    <>
+      <path d="M4 7h16M10 7V4h4v3M6 7l1 13h10l1-13" />
+      <path d="M10 11v6M14 11v6" />
+    </>
+  ),
+  edit: (
+    <>
+      <path d="M4 20h4L19 9a2.8 2.8 0 0 0-4-4L4 16z" />
+      <path d="m14.5 5.5 4 4" />
+    </>
+  ),
+  download: (
+    <>
+      <path d="M12 3v12M7 11l5 5 5-5" />
+      <path d="M4 19h16" />
+    </>
+  ),
+  upload: (
+    <>
+      <path d="M12 21V9M7 13l5-5 5 5" />
+      <path d="M4 4h16" />
+    </>
+  ),
+  link: (
+    <>
+      <path d="M10 13.5a4 4 0 0 0 5.7 0l2.8-2.8a4 4 0 0 0-5.7-5.7L11.5 6.3" />
+      <path d="M14 10.5a4 4 0 0 0-5.7 0l-2.8 2.8a4 4 0 1 0 5.7 5.7l1.3-1.3" />
+    </>
+  ),
+  sync: (
+    <>
+      <path d="M20 11a8 8 0 0 0-14.3-5M4 13a8 8 0 0 0 14.3 5" />
+      <path d="M4 4v5h5M20 20v-5h-5" />
+    </>
+  ),
+  key: (
+    <>
+      <circle cx="8" cy="12" r="4" />
+      <path d="M12 12h9M18 12v3M15.5 12v2.5" />
+    </>
+  ),
+  alert: (
+    <>
+      <circle cx="12" cy="12" r="9" />
+      <path d="M12 7.5v5.5M12 16.2h.01" />
+    </>
+  ),
+  info: (
+    <>
+      <circle cx="12" cy="12" r="9" />
+      <path d="M12 11v5.5M12 7.8h.01" />
+    </>
+  ),
+  sparkle: (
+    <>
+      <path d="M12 3.5 13.7 9l5.5 1.7-5.5 1.7L12 18l-1.7-5.6L4.8 10.7 10.3 9z" />
+      <path d="M18.5 16.5 19.2 18.6l2.1.7-2.1.7-.7 2.1-.7-2.1-2.1-.7 2.1-.7z" />
+    </>
+  ),
+  send: <path d="M4.5 12 20 4.5 15 20l-3.5-6.5z" />,
+  flame: (
+    <>
+      <path d="M12 3c3 3.5 5.5 6 5.5 9.5A5.5 5.5 0 0 1 6.5 12.5C6.5 10 8 8.5 9 7c.5 2 1.5 2.5 2 2.5C11.5 8 11 5.5 12 3z" />
+    </>
+  ),
+  target: (
+    <>
+      <circle cx="12" cy="12" r="8.5" />
+      <circle cx="12" cy="12" r="4.5" />
+      <circle cx="12" cy="12" r=".8" fill="currentColor" />
+    </>
+  ),
+  clock: (
+    <>
+      <circle cx="12" cy="12" r="8.5" />
+      <path d="M12 7v5.2l3.4 2" />
+    </>
+  ),
+  logout: (
+    <>
+      <path d="M14 4h4a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-4" />
+      <path d="M10 16l-4-4 4-4M6 12h10" />
+    </>
+  ),
+  external: (
+    <>
+      <path d="M14 4h6v6" />
+      <path d="M20 4 11 13" />
+      <path d="M18 14v5a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h5" />
+    </>
+  ),
+  user: (
+    <>
+      <circle cx="12" cy="8" r="4" />
+      <path d="M4.5 20a7.5 7.5 0 0 1 15 0" />
+    </>
+  ),
+  note: (
+    <>
+      <path d="M5 4h14v12l-5 5H5z" />
+      <path d="M14 21v-5h5M9 9h6M9 13h4" />
+    </>
+  ),
 }
 
 export function Icon({ name, size = 20, stroke = 1.8 }: IconProps) {
@@ -122,7 +226,7 @@ export function Icon({ name, size = 20, stroke = 1.8 }: IconProps) {
       strokeLinecap="round"
       strokeLinejoin="round"
     >
-      {paths[name] ?? paths.today}
+      {paths[name] ?? paths.target}
     </svg>
   )
 }

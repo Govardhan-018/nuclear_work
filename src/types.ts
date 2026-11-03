@@ -1,4 +1,20 @@
-export type PageId = "today" | "calendar" | "focus" | "reading" | "food" | "tasks" | "habits" | "fitness" | "insights" | "library"
+export type PageId =
+  | "today"
+  | "calendar"
+  | "focus"
+  | "reading"
+  | "food"
+  | "tasks"
+  | "habits"
+  | "fitness"
+  | "insights"
+  | "library"
+  | "settings"
+
+export const PAGE_IDS: PageId[] = [
+  "today", "calendar", "focus", "reading", "food",
+  "tasks", "habits", "fitness", "insights", "library", "settings",
+]
 
 export type Task = {
   id: number
