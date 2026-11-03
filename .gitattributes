@@ -3,7 +3,6 @@
 
 # ---------------------------------------------------------------------------
 # Images & Graphics
-# ---------------------------------------------------------------------------
 *.png                filter=lfs diff=lfs merge=lfs -text
 *.jpg                filter=lfs diff=lfs merge=lfs -text
 *.jpeg               filter=lfs diff=lfs merge=lfs -text
@@ -16,10 +15,7 @@
 *.psd                filter=lfs diff=lfs merge=lfs -text
 *.ai                 filter=lfs diff=lfs merge=lfs -text
 *.sketch             filter=lfs diff=lfs merge=lfs -text
-
-# ---------------------------------------------------------------------------
 # Video
-# ---------------------------------------------------------------------------
 *.mp4                filter=lfs diff=lfs merge=lfs -text
 *.mov                filter=lfs diff=lfs merge=lfs -text
 *.avi                filter=lfs diff=lfs merge=lfs -text
@@ -30,10 +26,7 @@
 *.m4v                filter=lfs diff=lfs merge=lfs -text
 *.mpg                filter=lfs diff=lfs merge=lfs -text
 *.mpeg               filter=lfs diff=lfs merge=lfs -text
-
-# ---------------------------------------------------------------------------
 # Audio
-# ---------------------------------------------------------------------------
 *.mp3                filter=lfs diff=lfs merge=lfs -text
 *.wav                filter=lfs diff=lfs merge=lfs -text
 *.flac               filter=lfs diff=lfs merge=lfs -text
@@ -42,10 +35,7 @@
 *.m4a                filter=lfs diff=lfs merge=lfs -text
 *.wma                filter=lfs diff=lfs merge=lfs -text
 *.aiff               filter=lfs diff=lfs merge=lfs -text
-
-# ---------------------------------------------------------------------------
 # 3D & Game Assets
-# ---------------------------------------------------------------------------
 *.fbx                filter=lfs diff=lfs merge=lfs -text
 *.obj                filter=lfs diff=lfs merge=lfs -text
 *.blend              filter=lfs diff=lfs merge=lfs -text
@@ -56,10 +46,7 @@
 *.unitypackage       filter=lfs diff=lfs merge=lfs -text
 *.uasset             filter=lfs diff=lfs merge=lfs -text
 *.umap               filter=lfs diff=lfs merge=lfs -text
-
-# ---------------------------------------------------------------------------
 # Archives & Compressed Files
-# ---------------------------------------------------------------------------
 *.zip                filter=lfs diff=lfs merge=lfs -text
 *.tar                filter=lfs diff=lfs merge=lfs -text
 *.gz                 filter=lfs diff=lfs merge=lfs -text
@@ -67,10 +54,7 @@
 *.7z                 filter=lfs diff=lfs merge=lfs -text
 *.rar                filter=lfs diff=lfs merge=lfs -text
 *.tgz                filter=lfs diff=lfs merge=lfs -text
-
-# ---------------------------------------------------------------------------
 # Documents & Fonts
-# ---------------------------------------------------------------------------
 *.pdf                filter=lfs diff=lfs merge=lfs -text
 *.docx               filter=lfs diff=lfs merge=lfs -text
 *.xlsx               filter=lfs diff=lfs merge=lfs -text
@@ -80,10 +64,7 @@
 *.woff               filter=lfs diff=lfs merge=lfs -text
 *.woff2              filter=lfs diff=lfs merge=lfs -text
 *.eot                filter=lfs diff=lfs merge=lfs -text
-
-# ---------------------------------------------------------------------------
 # Data & Machine Learning
-# ---------------------------------------------------------------------------
 *.parquet            filter=lfs diff=lfs merge=lfs -text
 *.hdf5               filter=lfs diff=lfs merge=lfs -text
 *.h5                 filter=lfs diff=lfs merge=lfs -text
@@ -98,19 +79,13 @@
 *.pb                 filter=lfs diff=lfs merge=lfs -text
 *.safetensors        filter=lfs diff=lfs merge=lfs -text
 *.gguf               filter=lfs diff=lfs merge=lfs -text
-
-# ---------------------------------------------------------------------------
 # Databases
-# ---------------------------------------------------------------------------
 *.db                 filter=lfs diff=lfs merge=lfs -text
 *.sqlite             filter=lfs diff=lfs merge=lfs -text
 *.sqlite3            filter=lfs diff=lfs merge=lfs -text
 *.mdb                filter=lfs diff=lfs merge=lfs -text
 *.accdb              filter=lfs diff=lfs merge=lfs -text
-
-# ---------------------------------------------------------------------------
 # Executables & Libraries
-# ---------------------------------------------------------------------------
 *.exe                filter=lfs diff=lfs merge=lfs -text
 *.dll                filter=lfs diff=lfs merge=lfs -text
 *.so                 filter=lfs diff=lfs merge=lfs -text
@@ -118,10 +93,7 @@
 *.a                  filter=lfs diff=lfs merge=lfs -text
 *.lib                filter=lfs diff=lfs merge=lfs -text
 *.wasm               filter=lfs diff=lfs merge=lfs -text
-
-# ---------------------------------------------------------------------------
 # Build Artifacts & Packages
-# ---------------------------------------------------------------------------
 *.jar                filter=lfs diff=lfs merge=lfs -text
 *.war                filter=lfs diff=lfs merge=lfs -text
 *.ear                filter=lfs diff=lfs merge=lfs -text
@@ -132,10 +104,7 @@
 *.dmg                filter=lfs diff=lfs merge=lfs -text
 *.iso                filter=lfs diff=lfs merge=lfs -text
 *.img                filter=lfs diff=lfs merge=lfs -text
-
-# ---------------------------------------------------------------------------
 # CAD & Scientific
-# ---------------------------------------------------------------------------
 *.dwg                filter=lfs diff=lfs merge=lfs -text
 *.dxf                filter=lfs diff=lfs merge=lfs -text
 *.step               filter=lfs diff=lfs merge=lfs -text
@@ -144,3 +113,6 @@
 *.stl                filter=lfs diff=lfs merge=lfs -text
 *.nc                 filter=lfs diff=lfs merge=lfs -text
 *.mat                filter=lfs diff=lfs merge=lfs -text
+*.png !text !filter !merge !diff
+*.woff2 !text !filter !merge !diff
+*.jar !text !filter !merge !diff

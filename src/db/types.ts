@@ -1,0 +1,225 @@
+import type { DayKey } from "../lib/date"
+
+/**
+ * Every record carries sync metadata so a remote backend can be added later
+ * without a schema migration. `deleted` is a soft-delete tombstone (0/1 rather
+ * than boolean because IndexedDB cannot index booleans).
+ */
+export type SyncMeta = {
+  createdAt: number
+  updatedAt: number
+  deleted: 0 | 1
+  /** Set once the record has been pushed to a remote backend. */
+  syncedAt?: number | null
+  /** Identifier assigned by the remote backend, if any. */
+  remoteId?: string | null
+}
+
+export type Priority = "Low" | "Medium" | "High"
+export type TaskCategory = "Study" | "Personal" | "Health" | "Fitness" | "Work"
+
+export type Task = SyncMeta & {
+  id: string
+  title: string
+  notes?: string
+  category: TaskCategory
+  priority: Priority
+  /** Epoch ms, or null for "someday". */
+  dueAt: number | null
+  done: 0 | 1
+  completedAt: number | null
+}
+
+export type Habit = SyncMeta & {
+  id: string
+  name: string
+  icon: string
+  cadence: string
+  /** How many days per week counts as on-track. 7 = daily. */
+  targetPerWeek: number
+  tone: string
+  archived: 0 | 1
+  order: number
+}
+
+export type HabitLog = SyncMeta & {
+  /** `${habitId}:${date}` so a day can only be logged once per habit. */
+  id: string
+  habitId: string
+  date: DayKey
+  done: 0 | 1
+}
+
+export type BookStatus = "Reading" | "Want to read" | "Completed"
+
+export type Book = SyncMeta & {
+  id: string
+  title: string
+  subtitle?: string
+  author: string
+  pages: number
+  currentPage: number
+  status: BookStatus
+  /** Short text shown on the generated cover. */
+  cover: string
+  accent: string
+  startedAt: number | null
+  finishedAt: number | null
+  rating: number | null
+  notes?: string
+}
+
+export type ReadingSession = SyncMeta & {
+  id: string
+  bookId: string | null
+  date: DayKey
+  startedAt: number
+  minutes: number
+  pagesRead: number
+}
+
+export type FocusSessionType = "Academic" | "Reading"
+
+export type FocusSession = SyncMeta & {
+  id: string
+  subject: string
+  type: FocusSessionType
+  mode: "Timer" | "Stopwatch"
+  date: DayKey
+  startedAt: number
+  endedAt: number
+  seconds: number
+  /** 1 when a timer ran to zero rather than being stopped early. */
+  completed: 0 | 1
+  note?: string
+}
+
+export type PortionLevel = "Low" | "Enough" | "High"
+export type JunkLevel = "None" | "Some" | "A lot"
+export type EnergyLevel = "Low" | "Okay" | "Good" | "Great"
+
+export type NutritionLog = SyncMeta & {
+  /** The day key doubles as the primary key: one check-in per day. */
+  id: DayKey
+  date: DayKey
+  protein: PortionLevel | null
+  carbs: PortionLevel | null
+  junk: JunkLevel | null
+  vegetables: boolean | null
+  fruit: boolean | null
+  /** Glasses of water. */
+  water: number
+  energy: EnergyLevel | null
+  note?: string
+}
+
+export type MealType = "Breakfast" | "Lunch" | "Dinner" | "Snack"
+
+export type Meal = SyncMeta & {
+  id: string
+  date: DayKey
+  type: MealType
+  name: string
+  /** Free text, e.g. "grain bowl, 1 plate". */
+  portion?: string
+  time: string
+  note?: string
+}
+
+export type ActivitySource = "strava" | "manual"
+
+export type Activity = SyncMeta & {
+  /** `strava:<id>` for imported activities, a uuid for manual ones. */
+  id: string
+  source: ActivitySource
+  stravaId?: number
+  name: string
+  /** Strava sport type, e.g. Run, Ride, Walk, WeightTraining. */
+  type: string
+  date: DayKey
+  startedAt: number
+  distanceM: number
+  movingTimeS: number
+  elapsedTimeS: number
+  elevationM: number
+  averageSpeed: number
+  averageHeartrate: number | null
+  maxHeartrate: number | null
+  calories: number | null
+  /** Encoded polyline of the route summary, when Strava provides one. */
+  polyline: string | null
+}
+
+export type CalendarEvent = SyncMeta & {
+  id: string
+  title: string
+  date: DayKey
+  startTime: string
+  endTime: string
+  category: string
+  note?: string
+}
+
+export type AiMessage = {
+  id: string
+  conversationId: string
+  role: "user" | "assistant" | "system"
+  text: string
+  model?: string
+  createdAt: number
+  /** Set when the request failed, so the UI can offer a retry. */
+  failed?: 0 | 1
+}
+
+export type SettingRecord = {
+  key: string
+  value: unknown
+  updatedAt: number
+}
+
+/** Everything the Settings page can read and write. */
+export type AppSettings = {
+  profileName: string
+  theme: "light" | "dark"
+  demoData: boolean
+  onboarded: boolean
+  focusDailyTargetMinutes: number
+  readingDailyTargetMinutes: number
+  waterDailyTarget: number
+  stravaClientId: string
+  stravaClientSecret: string
+  stravaAccessToken: string
+  stravaRefreshToken: string
+  stravaExpiresAt: number
+  stravaAthleteName: string
+  stravaLastSyncAt: number
+  openRouterApiKey: string
+  openRouterModel: string
+}
+
+export const DEFAULT_SETTINGS: AppSettings = {
+  profileName: "",
+  theme: "light",
+  demoData: true,
+  onboarded: false,
+  focusDailyTargetMinutes: 240,
+  readingDailyTargetMinutes: 30,
+  waterDailyTarget: 8,
+  stravaClientId: "",
+  stravaClientSecret: "",
+  stravaAccessToken: "",
+  stravaRefreshToken: "",
+  stravaExpiresAt: 0,
+  stravaAthleteName: "",
+  stravaLastSyncAt: 0,
+  openRouterApiKey: "",
+  openRouterModel: "meta-llama/llama-3.3-70b-instruct:free",
+}
+
+/** Keys that hold credentials; masked in the UI and excluded from exports. */
+export const SECRET_SETTING_KEYS: (keyof AppSettings)[] = [
+  "stravaClientSecret",
+  "stravaAccessToken",
+  "stravaRefreshToken",
+  "openRouterApiKey",
+]
