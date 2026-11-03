@@ -1428,3 +1428,24 @@ html[data-theme="dark"] {
   --sand: #e0bb5c;
   --sand-soft: #38301b;
 }
+
+/* The analysis cards were sized for a three-column desktop grid. On a phone
+   they stack, and the fixed heights left a large gap above the heading. */
+@media (max-width: 760px) {
+  .ai-analysis-grid { grid-template-columns: 1fr; }
+  .ai-analysis-grid article,
+  .ai-analysis-grid article.primary {
+    min-height: 0;
+    grid-row: auto;
+    padding: var(--space-5);
+    justify-content: flex-start;
+    gap: var(--space-2);
+  }
+  .ai-analysis-grid article h3 { font-size: var(--text-lg); line-height: 1.25; }
+  .ai-analysis-grid article p { font-size: var(--text-sm); line-height: 1.55; }
+  .ai-analysis-grid article > span {
+    font-size: var(--text-2xs);
+    letter-spacing: .12em;
+    text-transform: uppercase;
+  }
+}

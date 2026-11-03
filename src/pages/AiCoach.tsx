@@ -296,7 +296,7 @@ function useComputedInsights(): { headline: string; cards: InsightCard[] } {
       body:
         peak === null
           ? "Run a few timed sessions and the app will work out when you focus best."
-          : `Your strongest focus window is around ${String(peak).padStart(2, "0")}:00. Today you are at ${formatDuration(todayFocus)} of a ${settings.focusDailyTargetMinutes} minute target.`,
+          : `Your strongest focus window is around ${String(peak).padStart(2, "0")}:00. Today you are at ${formatDuration(todayFocus)} of a ${formatDuration(target)} target.`,
     })
 
     /* nutrition */
