@@ -1,6 +1,7 @@
 import { defineConfig, type HtmlTagDescriptor, type Plugin } from "vite"
 import react from "@vitejs/plugin-react"
 import tailwindcss from "@tailwindcss/vite"
+import { VitePWA } from "vite-plugin-pwa"
 import fs from "node:fs"
 import path from "node:path"
 
@@ -22,6 +23,45 @@ export default defineConfig(({ mode }) => {
     plugins: [
       react(),
       tailwindcss(),
+      // Installable web app with offline caching. The service worker is
+      // registered from main.tsx and only outside the native shell, where the
+      // assets already live on the device.
+      VitePWA({
+        registerType: "autoUpdate",
+        injectRegister: null,
+        includeAssets: ["favicon.svg", "icons/apple-touch-icon.png", "fonts/*.woff2"],
+        manifest: {
+          name: "Life OS",
+          short_name: "Life OS",
+          description:
+            "Study, reading, food, tasks, habits and fitness in one offline-first personal tracker.",
+          theme_color: "#e8e8e7",
+          background_color: "#e8e8e7",
+          display: "standalone",
+          orientation: "portrait",
+          start_url: "/",
+          scope: "/",
+          categories: ["health", "lifestyle", "productivity"],
+          icons: [
+            { src: "icons/icon-192.png", sizes: "192x192", type: "image/png" },
+            { src: "icons/icon-512.png", sizes: "512x512", type: "image/png" },
+            {
+              src: "icons/maskable-512.png",
+              sizes: "512x512",
+              type: "image/png",
+              purpose: "maskable",
+            },
+          ],
+        },
+        workbox: {
+          globPatterns: ["**/*.{js,css,html,svg,png,woff2}"],
+          // Strava and OpenRouter must never be served from cache.
+          navigateFallbackDenylist: [/^\/api/],
+          runtimeCaching: [],
+          cleanupOutdatedCaches: true,
+        },
+        devOptions: { enabled: false },
+      }),
       figmaSiteConfiguration(siteConfiguration),
       figmaErrorOverlayReplay(),
       figmaReactRefreshBoundaryFallback(),
