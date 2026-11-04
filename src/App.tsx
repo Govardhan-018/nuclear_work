@@ -5,6 +5,7 @@ import { MobileNav, Sidebar, Topbar } from "./components/Layout"
 import { Button, Modal } from "./components/UI"
 import { Icon } from "./components/Icon"
 import { MayaMark } from "./components/MayaMark"
+import { LoadingOverlay } from "./components/LoadingOverlay"
 import { initializeDatabase } from "./db/seed"
 import { setSetting, useSettings } from "./db/settings"
 import { useDbReady } from "./db/stats"
@@ -186,13 +187,7 @@ export default function App() {
   if (page === "welcome") return pages.welcome
 
   if (!booted || !ready) {
-    return (
-      <div className="app-boot">
-        <MayaMark size={56} />
-        <strong>MAYA</strong>
-        <i />
-      </div>
-    )
+    return <LoadingOverlay label={page === "welcome" ? "Preparing Maya" : "Opening your dashboard"} />
   }
 
   return (

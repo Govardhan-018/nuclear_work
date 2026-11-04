@@ -2193,3 +2193,42 @@ html[data-theme="dark"] .web-primary { border-color: var(--teal); background: va
   .web-preview-grid .web-preview-focus { grid-column: span 2; grid-row: auto; min-height: 124px; }
   .web-landing-footer { align-items: flex-start; flex-direction: column; }
 }
+
+
+/* ==========================================================================
+   Theme-aware loading surface
+   ========================================================================== */
+
+.loading-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 300;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: 14px;
+  padding: var(--space-6);
+  background: var(--bg);
+  color: var(--ink);
+  animation: loading-fade-in var(--dur-mid) var(--ease-out);
+}
+.loading-inline {
+  position: relative;
+  inset: auto;
+  min-height: 150px;
+  border-radius: var(--radius-lg);
+}
+.loading-mark { position: relative; display: grid; place-items: center; width: 72px; height: 72px; }
+.loading-mark .maya-mark { position: relative; z-index: 2; border-radius: 24%; }
+.loading-orbit { position: absolute; inset: 2px; border: 2px solid transparent; border-top-color: var(--teal); border-right-color: color-mix(in srgb, var(--teal) 32%, transparent); border-radius: 50%; animation: loading-spin 1.15s linear infinite; }
+.loading-orbit-two { inset: 9px; border-top-color: var(--coral); border-right-color: transparent; animation-duration: .8s; animation-direction: reverse; }
+.loading-overlay strong { font-size: var(--text-sm); font-weight: 700; letter-spacing: .02em; }
+.loading-progress { width: 86px; height: 3px; overflow: hidden; border-radius: var(--radius-pill); background: var(--line); }
+.loading-progress i { display: block; width: 38%; height: 100%; border-radius: inherit; background: var(--teal); animation: loading-slide 1.15s ease-in-out infinite; }
+@keyframes loading-spin { to { transform: rotate(360deg); } }
+@keyframes loading-slide { 0% { transform: translateX(-120%); } 100% { transform: translateX(280%); } }
+@keyframes loading-fade-in { from { opacity: 0; } to { opacity: 1; } }
+html[data-theme="dark"] .loading-overlay { background: var(--bg); }
+@media (prefers-reduced-motion: reduce) {
+  .loading-orbit, .loading-progress i { animation: none; }
+}
