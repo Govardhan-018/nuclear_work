@@ -65,7 +65,22 @@ Deno.serve(async (request) => {
   if (request.method === "OPTIONS") return new Response("ok", { headers: corsHeaders })
   const url = Deno.env.get("SUPABASE_URL")
   const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")
-  if (!url || !serviceKey) return error("Backend is not configured", 500)
+  const publishableKey = Deno.env.get("SUPABASE_ANON_KEY")
+  if (!url || !serviceKey || !publishableKey) return error("Backend is not configured", 500)
+
+  if (resource === "auth") {
+    const action = route[1]
+    const allowed = new Set(["signup", "token", "logout", "user", "recover"])
+    if (!action || !allowed.has(action)) return error("Unknown auth action", 404)
+    const target = new URL(`${url}/auth/v1/${action}`)
+    for (const [key, value] of new URL(request.url).searchParams) target.searchParams.set(key, value)
+    const headers = new Headers({ apikey: publishableKey, "Content-Type": "application/json" })
+    const bearer = request.headers.get("Authorization")
+    if (bearer) headers.set("Authorization", bearer)
+    const body = request.method === "GET" || request.method === "HEAD" ? undefined : await request.text()
+    const response = await fetch(target, { method: request.method, headers, body })
+    return new Response(response.body, { status: response.status, headers: { ...corsHeaders, "Content-Type": response.headers.get("Content-Type") ?? "application/json" } })
+  }
 
   const token = request.headers.get("Authorization")?.replace(/^Bearer\s+/i, "")
   if (!token) return error("Authentication required", 401)
