@@ -30,12 +30,13 @@ ledger.
 - Secrets and provider tokens are not stored in the client database schema.
   Strava and Groq server work belongs in protected Edge Functions.
 
-## Next backend step
+## API layer
 
-Add authentication and a small authenticated sync function that:
+The single authenticated API lives at `supabase/functions/api/index.ts`. It owns
+all application data access and validates the authenticated owner before using
+the server-side Supabase key.
 
-1. accepts a bounded batch of local changes,
-2. validates the authenticated owner,
-3. applies idempotent upserts/tombstones,
-4. returns changes after a supplied `seq` cursor,
-5. reports conflicts without losing either snapshot.
+Its `/v1/sync` route accepts a bounded batch of local changes, applies
+idempotent upserts/tombstones, returns changes after a supplied `seq` cursor,
+and reports conflicts without losing either snapshot. Clients should call the
+API, never the PostgREST tables directly.
