@@ -13,6 +13,11 @@ export type WebSession = {
 const SUPABASE_URL = (import.meta.env.VITE_SUPABASE_URL as string | undefined)?.replace(/\/$/, "")
 const SUPABASE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as string | undefined
 const SESSION_KEY = "maya.web.supabase.session"
+const API_RESOURCES: Record<string, string> = {
+  habitLogs: "habit-logs", readingSessions: "reading-sessions", focusSessions: "focus-sessions",
+  nutritionLogs: "nutrition-logs", aiMessages: "ai-messages",
+}
+function apiResource(table: string): string { return API_RESOURCES[table] ?? table }
 
 export function isWebCloudConfigured(): boolean {
   return Boolean(SUPABASE_URL && SUPABASE_KEY)
@@ -120,7 +125,7 @@ export async function readCloudRows<T>(
 ): Promise<T[]> {
   const session = loadWebSession()
   if (!session) throw new Error("Sign in to access cloud data.")
-  return request<T[]>(`/rest/v1/${table}?${query}`, {}, session.access_token)
+  return request<{ data: T[] }>(`/functions/v1/api/v1/${apiResource(table)}?${query}`, {}, session.access_token).then((result) => result.data)
 }
 
 export async function upsertCloudRow<T extends Record<string, unknown>>(
@@ -130,11 +135,10 @@ export async function upsertCloudRow<T extends Record<string, unknown>>(
 ): Promise<T[]> {
   const session = loadWebSession()
   if (!session) throw new Error("Sign in to save cloud data.")
-  return request<T[]>(`/rest/v1/${table}?on_conflict=${encodeURIComponent(onConflict)}`, {
+  return request<{ data: T[] }>(`/functions/v1/api/v1/${apiResource(table)}`, {
     method: "POST",
-    headers: { Prefer: "resolution=merge-duplicates,return=representation" },
     body: JSON.stringify(row),
-  }, session.access_token)
+  }, session.access_token).then((result) => result.data)
 }
 
 export async function invokeCloudFunction<T>(
