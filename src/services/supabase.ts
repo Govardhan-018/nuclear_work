@@ -1,4 +1,4 @@
-import { http } from "./platform"
+import { http, NetworkError } from "./platform"
 
 export type WebUser = {
   id: string
@@ -81,10 +81,20 @@ export async function signInWithPassword(email: string, password: string): Promi
   return normalized
 }
 
+function confirmationRedirectUrl(): string | undefined {
+  if (typeof location === "undefined") return undefined
+  return location.protocol === "http:" || location.protocol === "https:" ? location.origin : undefined
+}
+
 export async function signUpWithPassword(email: string, password: string): Promise<WebSession | null> {
+  const emailRedirectTo = confirmationRedirectUrl()
   const result = await request<WebSession | { user: WebUser }>("/api/v1/auth/signup", {
     method: "POST",
-    body: JSON.stringify({ email, password }),
+    body: JSON.stringify({
+      email,
+      password,
+      ...(emailRedirectTo ? { options: { emailRedirectTo } } : {}),
+    }),
   })
   if ("access_token" in result) {
     const normalized = normalizeSession(result)
@@ -105,7 +115,10 @@ export async function refreshWebSession(): Promise<WebSession | null> {
     const normalized = normalizeSession(session)
     saveWebSession(normalized)
     return normalized
-  } catch {
+  } catch (error) {
+    // Keeping the cached session lets a signed-in device open its local data
+    // while offline. A rejected refresh still clears an invalid account session.
+    if (error instanceof NetworkError) return current
     saveWebSession(null)
     return null
   }
@@ -182,4 +195,15 @@ export async function pushCloudChanges(changes: CloudChange[]): Promise<void> {
   const session = await ensureWebSession()
   if (!session) throw new Error("Sign in to save cloud data.")
   await request("/api/v1/sync", { method: "POST", body: JSON.stringify({ changes }) }, session.access_token)
+}
+export async function resendConfirmationEmail(email: string): Promise<void> {
+  const emailRedirectTo = confirmationRedirectUrl()
+  await request("/api/v1/auth/resend", {
+    method: "POST",
+    body: JSON.stringify({
+      email,
+      type: "signup",
+      ...(emailRedirectTo ? { options: { emailRedirectTo } } : {}),
+    }),
+  })
 }
