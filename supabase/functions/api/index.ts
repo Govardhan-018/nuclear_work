@@ -110,8 +110,10 @@ Deno.serve(async (request) => {
     return respond({ data: (data ?? []).map(toApi) })
   }
 
-  let body: unknown
-  try { body = await request.json() } catch { return error("Request body must be JSON", 400) }
+  let body: unknown = {}
+  if (request.method !== "DELETE") {
+    try { body = await request.json() } catch { return error("Request body must be JSON", 400) }
+  }
   const items = Array.isArray(body) ? body : (body && typeof body === "object" && "data" in body ? (body as { data: unknown }).data : body)
   if (!Array.isArray(items) && (!items || typeof items !== "object")) return error("Request body must be an object or array", 400)
   const rows = (Array.isArray(items) ? items : [items]).map((item) => toDb(item as Record<string, unknown>, userId, table, id))
