@@ -32,7 +32,7 @@ const dbRecord = (input, userId, table, id) => {
   for (const [key,value] of Object.entries(input || {})) {
     if (key === "user_id" || key === "userId") continue
     const field = snake(key)
-    if ((table === "settings" || table === "ai_messages") && ["deleted","remote_id","synced_at","updated_at"].includes(field)) continue
+    if ((table === "settings" && ["deleted","remote_id","synced_at"].includes(field)) || (table === "ai_messages" && ["deleted","remote_id","synced_at","updated_at"].includes(field))) continue
     let storedValue = value
     if (timestampFields.has(field) && value !== null && value !== undefined) {
       const epoch = Number(value)
