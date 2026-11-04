@@ -1,8 +1,8 @@
 import type { DayKey } from "../lib/date"
 
 /**
- * Every record carries sync metadata so a remote backend can be added later
- * without a schema migration. `deleted` is a soft-delete tombstone (0/1 rather
+ * Every syncable record carries metadata for the shared cloud sync layer. `deleted` is a soft-delete tombstone (0/1 rather
+ * than boolean because IndexedDB cannot index booleans). `deleted` is a soft-delete tombstone (0/1 rather
  * than boolean because IndexedDB cannot index booleans).
  */
 export type SyncMeta = {
