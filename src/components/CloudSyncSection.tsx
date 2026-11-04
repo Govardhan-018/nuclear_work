@@ -112,7 +112,7 @@ export function CloudSyncSection() {
           </label>
           <label className="field">
             <span>Password</span>
-            <input type="password" value={password} onChange={(event) => setPassword(event.target.value)} autoComplete={creatingAccount ? "new-password" : "current-password"} minLength={8} required />
+            <input type="password" value={password} onChange={(event) => setPassword(event.target.value)} autoComplete={creatingAccount ? "new-password" : "current-password"} required />
           </label>
           <div className="header-actions">
             <Button type="submit" disabled={busy}>{busy ? "Connecting…" : creatingAccount ? "Create account & sync" : "Sign in & sync"}</Button>
