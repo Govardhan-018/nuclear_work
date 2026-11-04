@@ -1,3 +1,4 @@
+import { CloudSyncSection } from "../components/CloudSyncSection"
 import { useEffect, useRef, useState } from "react"
 import { Icon } from "../components/Icon"
 import { Badge, Button, Card, Modal, PageHeader, SectionTitle } from "../components/UI"
@@ -37,7 +38,7 @@ export function SettingsPage(_props: PageProps) {
       <PageHeader
         eyebrow="Settings"
         title="Make it yours."
-        description="Your data stays on this device. Connect Strava and an AI model only if you want them."
+        description="Your data stays available offline and can sync across web and Android. Connect Strava and an AI model if you want them."
       />
 
       {toast && (
@@ -51,6 +52,7 @@ export function SettingsPage(_props: PageProps) {
       )}
 
       <ProfileSection />
+      <CloudSyncSection />
       <TargetsSection />
       <StravaSection onNotify={notify} />
       <AiSection onNotify={notify} />
