@@ -882,8 +882,8 @@ function DataSection({ onNotify }: { onNotify: (k: "ok" | "error", t: string) =>
       {confirmClear && (
         <Modal title="Clear everything?" onClose={() => setConfirmClear(false)}>
           <p className="modal-intro">
-            This permanently deletes every record on this device. Your Strava and Groq keys
-            are kept so you do not have to re-enter them. This cannot be undone.
+            This deletes records from this device. Your Strava and Groq keys are kept. If cloud sync
+            is enabled, your cloud copy remains and will download again the next time you sync.
           </p>
           <div className="modal-actions">
             <Button variant="secondary" onClick={() => setConfirmClear(false)}>
