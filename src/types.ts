@@ -1,4 +1,5 @@
 export type PageId =
+  | "welcome"
   | "today"
   | "calendar"
   | "focus"
@@ -12,6 +13,7 @@ export type PageId =
   | "settings"
 
 export const PAGE_IDS: PageId[] = [
+  "welcome",
   "today", "calendar", "focus", "reading", "food",
   "tasks", "habits", "fitness", "insights", "library", "settings",
 ]

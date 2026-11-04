@@ -23,10 +23,11 @@ import { FitnessPage } from "./pages/FitnessPage"
 import { InsightsPage } from "./pages/InsightsPage"
 import { LibraryPage } from "./pages/LibraryPage"
 import { SettingsPage } from "./pages/SettingsPage"
+import { WebLandingPage } from "./pages/WebLandingPage"
 
 function pageFromHash(): PageId {
   const hash = location.hash.slice(1) as PageId
-  return PAGE_IDS.includes(hash) ? hash : "today"
+  return PAGE_IDS.includes(hash) ? hash : isNative() ? "today" : "welcome"
 }
 
 export default function App() {
@@ -57,6 +58,11 @@ export default function App() {
 
   /* Seed or migrate on first run, then reveal the UI. */
   useEffect(() => {
+    if (page === "welcome") {
+      setBooted(true)
+      void hideSplash()
+      return
+    }
     let cancelled = false
     void initializeDatabase()
       .catch((error) => {
@@ -71,7 +77,7 @@ export default function App() {
     return () => {
       cancelled = true
     }
-  }, [])
+  }, [page])
 
   useEffect(() => {
     const onHash = () => {
@@ -159,6 +165,7 @@ export default function App() {
   )
 
   const pages: Record<PageId, React.ReactNode> = {
+    welcome: <WebLandingPage onEnter={() => navigate("today")} />,
     today: <TodayPage {...pageProps} />,
     calendar: <CalendarPage {...pageProps} />,
     focus: <FocusPage {...pageProps} />,
@@ -171,6 +178,8 @@ export default function App() {
     library: <LibraryPage {...pageProps} />,
     settings: <SettingsPage {...pageProps} />,
   }
+
+  if (page === "welcome") return pages.welcome
 
   if (!booted || !ready) {
     return (
