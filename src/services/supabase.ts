@@ -51,8 +51,7 @@ async function request<T>(
   accessToken?: string,
 ): Promise<T> {
   const { url } = requireConfig()
-  const headers = Object.fromEntries(new Headers(options.headers).entries())
-  headers.Accept = "application/json"
+  const headers: Record<string, string> = { Accept: "application/json" }
   if (options.body) headers["Content-Type"] = "application/json"
   if (accessToken) headers.Authorization = "Bearer " + accessToken
 
@@ -103,8 +102,9 @@ export async function refreshWebSession(): Promise<WebSession | null> {
       method: "POST",
       body: JSON.stringify({ refresh_token: current.refresh_token }),
     })
-    saveWebSession(session)
-    return session
+    const normalized = normalizeSession(session)
+    saveWebSession(normalized)
+    return normalized
   } catch {
     saveWebSession(null)
     return null
