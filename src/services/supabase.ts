@@ -40,7 +40,7 @@ export function saveWebSession(session: WebSession | null): void {
   else localStorage.removeItem(SESSION_KEY)
 }
 
-function requireConfig(): { url: string; key: string } {
+function requireConfig(): { url: string } {
   if (!API_URL) throw new Error("Maya API is not configured for this web build.")
   return { url: API_URL }
 }
@@ -163,7 +163,7 @@ function normalizeSession(session: WebSession): WebSession {
 export async function ensureWebSession(): Promise<WebSession | null> {
   const current = loadWebSession()
   if (!current) return null
-  if (current.expires_at && current.expires_at <= Math.floor(Date.now() / 1000) + 60) {
+  if (!current.expires_at || current.expires_at <= Math.floor(Date.now() / 1000) + 60) {
     return refreshWebSession()
   }
   return current
