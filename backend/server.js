@@ -24,6 +24,7 @@ const aliases = {
 }
 const reverseAliases = Object.fromEntries(Object.entries(aliases).map(([k,v]) => [v,k]))
 const flags = new Set(["deleted","done","archived","completed","failed"])
+const timestampFields = new Set(["due_at","completed_at","finished_at","started_at","ended_at","created_at","updated_at","synced_at"])
 const snake = (key) => aliases[key] || key.replace(/[A-Z]/g, (c) => "_" + c.toLowerCase())
 const camel = (key) => reverseAliases[key] || key.replace(/_([a-z])/g, (_, c) => c.toUpperCase())
 const dbRecord = (input, userId, table, id) => {
@@ -31,7 +32,13 @@ const dbRecord = (input, userId, table, id) => {
   for (const [key,value] of Object.entries(input || {})) {
     if (key === "user_id" || key === "userId") continue
     const field = snake(key)
-    row[field] = flags.has(field) ? value === true || value === 1 : value
+    if ((table === "settings" || table === "ai_messages") && ["deleted","remote_id","synced_at","updated_at"].includes(field)) continue
+    let storedValue = value
+    if (timestampFields.has(field) && value !== null && value !== undefined) {
+      const epoch = Number(value)
+      if (Number.isFinite(epoch)) storedValue = new Date(epoch).toISOString()
+    }
+    row[field] = flags.has(field) ? value === true || value === 1 : storedValue
   }
   if (table !== "settings" && id) row.id = id
   if (table === "settings") { delete row.id; if (!row.key && id) row.key = id }
@@ -41,7 +48,8 @@ const apiRecord = (row) => {
   if (!row) return null
   return Object.fromEntries(Object.entries(row).filter(([k]) => k !== "user_id").map(([k,v]) => {
     const key = camel(k)
-    return [key, flags.has(key) ? (v ? 1 : 0) : v]
+    const converted = timestampFields.has(k) && v !== null ? Date.parse(String(v)) : v
+    return [key, flags.has(key) ? (v ? 1 : 0) : converted]
   }))
 }
 function send(res, status, body, headers = {}) {
