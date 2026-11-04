@@ -2,7 +2,7 @@
 
 A personal tracker for study, reading, food, tasks, habits and fitness, available on web and Android.
 
-Maya works offline with a local IndexedDB copy. Sign in to Cloud sync in Settings to share your records between web and Android through the Maya API on Render. The clients do not connect directly to Supabase.
+Sign in is required to use Maya. Records sync between web and Android through the Maya API on Render, with a local IndexedDB copy available offline. The clients do not connect directly to Supabase.
 
 - **Local-first.** Data stays available on this device; when signed in, it syncs through your Maya account.
 
@@ -36,7 +36,7 @@ seeded rows; anything you have added yourself stays.
 
 ## Cloud sync
 
-Set `VITE_MAYA_API_URL` to the Render API origin when building the web app or APK. Create an account or sign in from **Settings → Cloud sync**. Signed-in devices synchronize through the same Maya API while preserving a local offline copy.
+Set `VITE_MAYA_API_URL` to the Render API origin when building the web app or APK. Create an account or sign in when Maya opens. Use **Settings → Cloud sync** to manage your account. Signed-in devices synchronize through the same Maya API while preserving a local offline copy.
 
 Render runs from the `backend/` directory on the `backend` branch. Keep Supabase credentials in Render environment variables only. Apply [the initial schema migration](https://github.com/Govardhan-018/nuclear_work/blob/backend/supabase/migrations/0001_initial_schema.sql) before enabling sync. See [WEB_CLOUD.md](WEB_CLOUD.md) for setup details.
 
