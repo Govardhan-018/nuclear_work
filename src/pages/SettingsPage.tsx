@@ -1,3 +1,4 @@
+import { CloudSyncSection } from "../components/CloudSyncSection"
 import { useCallback, useEffect, useRef, useState } from "react"
 import { Icon } from "../components/Icon"
 import { Badge, Button, Card, Modal, PageHeader, SectionTitle } from "../components/UI"
@@ -42,7 +43,7 @@ export function SettingsPage(_props: PageProps) {
       <PageHeader
         eyebrow="Settings"
         title="Make it yours."
-        description="Your data stays on this device. Connect Strava and an AI model only if you want them."
+        description="Your data stays available offline and can sync across web and Android. Connect Strava and an AI model if you want them."
       />
 
       {toast && (
@@ -56,6 +57,7 @@ export function SettingsPage(_props: PageProps) {
       )}
 
       <ProfileSection />
+      <CloudSyncSection />
       <TargetsSection />
       <NotificationsSection onNotify={notify} />
       <StravaSection onNotify={notify} />
@@ -783,7 +785,7 @@ function DataSection({ onNotify }: { onNotify: (k: "ok" | "error", t: string) =>
     <Card className="settings-card">
       <SectionTitle
         title="Your data"
-        subtitle="Everything lives in this app's private storage on this device."
+        subtitle="A local copy stays on this device for offline use. Sign in above to sync through Maya cloud."
       />
 
       <div className="settings-counts">
@@ -926,8 +928,8 @@ function AboutSection() {
         </div>
       </div>
       <p className="soft-note">
-        Maya keeps everything on device. Strava sync and the AI coach are the only features
-        that reach the network, and both are off until you add your own keys.
+        Maya keeps a local copy for offline use. When Cloud sync is connected, records sync through
+        Maya's backend; Strava and AI features use the services configured in Settings.
       </p>
     </Card>
   )
