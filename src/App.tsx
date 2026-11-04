@@ -5,6 +5,7 @@ import { MobileNav, Sidebar, Topbar } from "./components/Layout"
 import { Button, Modal } from "./components/UI"
 import { Icon } from "./components/Icon"
 import { MayaMark } from "./components/MayaMark"
+import { LoadingOverlay } from "./components/LoadingOverlay"
 import { initializeDatabase } from "./db/seed"
 import { setSetting, useSettings } from "./db/settings"
 import { useDbReady } from "./db/stats"
@@ -23,10 +24,11 @@ import { FitnessPage } from "./pages/FitnessPage"
 import { InsightsPage } from "./pages/InsightsPage"
 import { LibraryPage } from "./pages/LibraryPage"
 import { SettingsPage } from "./pages/SettingsPage"
+import { WebLandingPage } from "./pages/WebLandingPage"
 
 function pageFromHash(): PageId {
   const hash = location.hash.slice(1) as PageId
-  return PAGE_IDS.includes(hash) ? hash : "today"
+  return PAGE_IDS.includes(hash) ? hash : isNative() ? "today" : "welcome"
 }
 
 export default function App() {
@@ -42,6 +44,7 @@ export default function App() {
 
   /* Internal history so the Android back button can walk back through pages. */
   const history = useRef<PageId[]>([pageFromHash()])
+  const databaseInitialized = useRef(false)
 
   const navigate = useCallback((next: PageId) => {
     setPage((current) => {
@@ -57,6 +60,14 @@ export default function App() {
 
   /* Seed or migrate on first run, then reveal the UI. */
   useEffect(() => {
+    if (page === "welcome") {
+      setBooted(true)
+      void hideSplash()
+      return
+    }
+    if (databaseInitialized.current) return
+    databaseInitialized.current = true
+
     let cancelled = false
     void initializeDatabase()
       .catch((error) => {
@@ -71,7 +82,7 @@ export default function App() {
     return () => {
       cancelled = true
     }
-  }, [])
+  }, [page])
 
   useEffect(() => {
     const onHash = () => {
@@ -159,6 +170,7 @@ export default function App() {
   )
 
   const pages: Record<PageId, React.ReactNode> = {
+    welcome: <WebLandingPage onEnter={() => navigate("today")} />,
     today: <TodayPage {...pageProps} />,
     calendar: <CalendarPage {...pageProps} />,
     focus: <FocusPage {...pageProps} />,
@@ -172,14 +184,10 @@ export default function App() {
     settings: <SettingsPage {...pageProps} />,
   }
 
+  if (page === "welcome") return pages.welcome
+
   if (!booted || !ready) {
-    return (
-      <div className="app-boot">
-        <MayaMark size={56} />
-        <strong>MAYA</strong>
-        <i />
-      </div>
-    )
+    return <LoadingOverlay label={page === "welcome" ? "Preparing Maya" : "Opening your dashboard"} />
   }
 
   return (
