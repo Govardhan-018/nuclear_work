@@ -95,6 +95,56 @@ Deno.serve(async (request) => {
     return respond({ data: Object.fromEntries(entries) })
   }
 
+  if (resource === "sync" && request.method === "POST") {
+    let input: { cursor?: number; changes?: Array<{ table: string; operation: "insert" | "update" | "delete"; recordId: string; data: Record<string, unknown> }> }
+    try { input = await request.json() } catch { return error("Request body must be JSON", 400) }
+    const cursor = Number.isFinite(input.cursor) ? Math.max(0, Number(input.cursor)) : 0
+    const changes = Array.isArray(input.changes) ? input.changes : []
+    if (changes.length > 100) return error("At most 100 changes may be sent per request", 413)
+
+    const accepted: string[] = []
+    const conflicts: Array<{ table: string; recordId: string }> = []
+    for (const change of changes) {
+      const table = resources[change.table] ?? resources[change.table.replace(/[A-Z]/g, (letter) => `-${letter.toLowerCase()}`)]
+      if (!table || !change.recordId || !change.data || !["insert", "update", "delete"].includes(change.operation)) {
+        return error("Invalid sync change", 400)
+      }
+      const { data: laterEvent, error: eventError } = await admin
+        .from("sync_events").select("seq").eq("table_name", table)
+        .eq("record_id", change.recordId).gt("seq", cursor).limit(1).maybeSingle()
+      if (eventError) return error(eventError.message, 500)
+      if (laterEvent) { conflicts.push({ table: change.table, recordId: change.recordId }); continue }
+
+      const row = toDb(change.data, userId, table, change.recordId)
+      const payload = change.operation === "delete" ? { ...row, deleted: true } : row
+      const { error: writeError } = await admin
+        .from(table).upsert(payload, { onConflict: table === "settings" ? "user_id,key" : "user_id,id" })
+      if (writeError) return error(writeError.message, 500)
+      accepted.push(`${change.table}:${change.recordId}`)
+    }
+
+    const { data: events, error: eventsError } = await admin
+      .from("sync_events").select("seq,table_name,record_id,operation,payload,occurred_at")
+      .eq("user_id", userId).gt("seq", cursor).order("seq", { ascending: true }).limit(500)
+    if (eventsError) return error(eventsError.message, 500)
+    const reverseResource = Object.fromEntries(Object.entries(resources).map(([key, value]) => [value, key]))
+    const output = (events ?? []).map((event) => ({
+      cursor: event.seq,
+      table: reverseResource[event.table_name] ?? event.table_name,
+      recordId: event.record_id,
+      operation: event.operation,
+      data: toApi(event.payload),
+      occurredAt: event.occurred_at,
+    }))
+    return respond({
+      cursor: output.length ? output[output.length - 1].cursor : cursor,
+      hasMore: output.length === 500,
+      accepted,
+      conflicts,
+      changes: output,
+    })
+  }
+
   const table = resource ? resources[resource] : undefined
   if (!table) return error("Unknown API resource", 404)
 
