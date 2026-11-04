@@ -75,7 +75,7 @@ async function request<T>(
 }
 
 export async function signInWithPassword(email: string, password: string): Promise<WebSession> {
-  const session = await request<WebSession>("/auth/v1/token?grant_type=password", {
+  const session = await request<WebSession>("/functions/v1/api/v1/auth/token?grant_type=password", {
     method: "POST",
     body: JSON.stringify({ email, password }),
   })
@@ -84,7 +84,7 @@ export async function signInWithPassword(email: string, password: string): Promi
 }
 
 export async function signUpWithPassword(email: string, password: string): Promise<WebSession | null> {
-  const result = await request<WebSession | { user: WebUser }>("/auth/v1/signup", {
+  const result = await request<WebSession | { user: WebUser }>("/functions/v1/api/v1/auth/signup", {
     method: "POST",
     body: JSON.stringify({ email, password }),
   })
@@ -99,7 +99,7 @@ export async function refreshWebSession(): Promise<WebSession | null> {
   const current = loadWebSession()
   if (!current?.refresh_token) return null
   try {
-    const session = await request<WebSession>("/auth/v1/token?grant_type=refresh_token", {
+    const session = await request<WebSession>("/functions/v1/api/v1/auth/token?grant_type=refresh_token", {
       method: "POST",
       body: JSON.stringify({ refresh_token: current.refresh_token }),
     })
@@ -114,7 +114,7 @@ export async function refreshWebSession(): Promise<WebSession | null> {
 export async function signOutWeb(): Promise<void> {
   const current = loadWebSession()
   if (current?.access_token) {
-    try { await request("/auth/v1/logout", { method: "POST" }, current.access_token) } catch { /* local sign-out still wins */ }
+    try { await request("/functions/v1/api/v1/auth/logout", { method: "POST" }, current.access_token) } catch { /* local sign-out still wins */ }
   }
   saveWebSession(null)
 }
