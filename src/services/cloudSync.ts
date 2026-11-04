@@ -1,5 +1,6 @@
 import { db } from "../db/db"
 import { SECRET_SETTING_KEYS } from "../db/types"
+import { isOnline } from "./platform"
 import { fetchCloudBootstrap, ensureWebSession, isWebCloudConfigured, pushCloudChanges, type CloudChange } from "./supabase"
 
 const CLOUD_OWNER_KEY = "maya.cloud.owner"
@@ -113,8 +114,12 @@ async function performSync(): Promise<{ pushed: number; pulled: number }> {
 export function startAutomaticCloudSync(): () => void {
   let stopped = false
   const run = () => {
-    if (stopped || !isWebCloudConfigured() || !localStorage.getItem("maya.web.supabase.session")) return
-    void syncCloudData().catch((error) => console.warn("Cloud sync paused:", error))
+    if (stopped || !isOnline() || !isWebCloudConfigured() || !localStorage.getItem("maya.web.supabase.session")) return
+    void syncCloudData().catch((error) => {
+      const message = error instanceof Error ? error.message : "Cloud sync failed."
+      console.warn("Cloud sync paused:", message)
+      window.dispatchEvent(new CustomEvent("maya:cloud-sync-error", { detail: { message } }))
+    })
   }
   const onVisible = () => { if (document.visibilityState === "visible") run() }
   window.addEventListener("online", run)
