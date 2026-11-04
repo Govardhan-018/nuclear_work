@@ -110,7 +110,7 @@ async function handle(req, res) {
 
   if (resource === "auth") {
     const action = route[1]
-    if (!new Set(["signup","token","logout","user","recover"]).has(action)) return send(res,404,{error:"Unknown auth action"},cors)
+    if (!new Set(["signup","token","logout","user","recover","resend"]).has(action)) return send(res,404,{error:"Unknown auth action"},cors)
     const target = new URL(`${SUPABASE_URL}/auth/v1/${action}`)
     url.searchParams.forEach((v,k) => target.searchParams.set(k,v))
     const authHeaders = { apikey:SUPABASE_PUBLISHABLE_KEY, "Content-Type":"application/json" }
