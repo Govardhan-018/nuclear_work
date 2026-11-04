@@ -1,4 +1,4 @@
-import { http, NetworkError } from "./platform"
+import { http, isNative, NetworkError } from "./platform"
 
 export type WebUser = {
   id: string
@@ -82,7 +82,9 @@ export async function signInWithPassword(email: string, password: string): Promi
 }
 
 function confirmationRedirectUrl(): string | undefined {
-  if (typeof location === "undefined") return undefined
+  // Native confirmation returns through Supabase's configured Site URL. The
+  // WebView's localhost origin is not a public redirect destination.
+  if (isNative() || typeof location === "undefined") return undefined
   return location.protocol === "http:" || location.protocol === "https:" ? location.origin : undefined
 }
 
