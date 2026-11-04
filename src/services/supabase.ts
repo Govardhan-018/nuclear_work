@@ -10,8 +10,7 @@ export type WebSession = {
   user: WebUser
 }
 
-const SUPABASE_URL = (import.meta.env.VITE_SUPABASE_URL as string | undefined)?.replace(/\/$/, "")
-const SUPABASE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as string | undefined
+const API_URL = (import.meta.env.VITE_MAYA_API_URL as string | undefined)?.replace(/\/$/, "")
 const SESSION_KEY = "maya.web.supabase.session"
 const API_RESOURCES: Record<string, string> = {
   habitLogs: "habit-logs", readingSessions: "reading-sessions", focusSessions: "focus-sessions",
@@ -20,7 +19,7 @@ const API_RESOURCES: Record<string, string> = {
 function apiResource(table: string): string { return API_RESOURCES[table] ?? table }
 
 export function isWebCloudConfigured(): boolean {
-  return Boolean(SUPABASE_URL && SUPABASE_KEY)
+  return Boolean(API_URL)
 }
 
 export function loadWebSession(): WebSession | null {
@@ -40,10 +39,8 @@ export function saveWebSession(session: WebSession | null): void {
 }
 
 function requireConfig(): { url: string; key: string } {
-  if (!SUPABASE_URL || !SUPABASE_KEY) {
-    throw new Error("Supabase is not configured for this web build.")
-  }
-  return { url: SUPABASE_URL, key: SUPABASE_KEY }
+  if (!API_URL) throw new Error("Maya API is not configured for this web build.")
+  return { url: API_URL }
 }
 
 async function request<T>(
@@ -51,12 +48,11 @@ async function request<T>(
   options: RequestInit = {},
   accessToken?: string,
 ): Promise<T> {
-  const { url, key } = requireConfig()
+  const { url } = requireConfig()
   const headers = new Headers(options.headers)
-  headers.set("apikey", key)
   headers.set("Accept", "application/json")
   if (options.body) headers.set("Content-Type", "application/json")
-  headers.set("Authorization", `Bearer ${accessToken ?? key}`)
+  if (accessToken) headers.set("Authorization", `Bearer ${accessToken}`)
 
   const response = await fetch(`${url}${path}`, { ...options, headers })
   const text = await response.text()
@@ -75,7 +71,7 @@ async function request<T>(
 }
 
 export async function signInWithPassword(email: string, password: string): Promise<WebSession> {
-  const session = await request<WebSession>("/functions/v1/api/v1/auth/token?grant_type=password", {
+  const session = await request<WebSession>("/api/v1/auth/token?grant_type=password", {
     method: "POST",
     body: JSON.stringify({ email, password }),
   })
@@ -84,7 +80,7 @@ export async function signInWithPassword(email: string, password: string): Promi
 }
 
 export async function signUpWithPassword(email: string, password: string): Promise<WebSession | null> {
-  const result = await request<WebSession | { user: WebUser }>("/functions/v1/api/v1/auth/signup", {
+  const result = await request<WebSession | { user: WebUser }>("/api/v1/auth/signup", {
     method: "POST",
     body: JSON.stringify({ email, password }),
   })
@@ -99,7 +95,7 @@ export async function refreshWebSession(): Promise<WebSession | null> {
   const current = loadWebSession()
   if (!current?.refresh_token) return null
   try {
-    const session = await request<WebSession>("/functions/v1/api/v1/auth/token?grant_type=refresh_token", {
+    const session = await request<WebSession>("/api/v1/auth/token?grant_type=refresh_token", {
       method: "POST",
       body: JSON.stringify({ refresh_token: current.refresh_token }),
     })
@@ -114,7 +110,7 @@ export async function refreshWebSession(): Promise<WebSession | null> {
 export async function signOutWeb(): Promise<void> {
   const current = loadWebSession()
   if (current?.access_token) {
-    try { await request("/functions/v1/api/v1/auth/logout", { method: "POST" }, current.access_token) } catch { /* local sign-out still wins */ }
+    try { await request("/api/v1/auth/logout", { method: "POST" }, current.access_token) } catch { /* local sign-out still wins */ }
   }
   saveWebSession(null)
 }
@@ -125,7 +121,7 @@ export async function readCloudRows<T>(
 ): Promise<T[]> {
   const session = loadWebSession()
   if (!session) throw new Error("Sign in to access cloud data.")
-  return request<{ data: T[] }>(`/functions/v1/api/v1/${apiResource(table)}?${query}`, {}, session.access_token).then((result) => result.data)
+  return request<{ data: T[] }>(`/api/v1/${apiResource(table)}?${query}`, {}, session.access_token).then((result) => result.data)
 }
 
 export async function upsertCloudRow<T extends Record<string, unknown>>(
@@ -135,7 +131,7 @@ export async function upsertCloudRow<T extends Record<string, unknown>>(
 ): Promise<T[]> {
   const session = loadWebSession()
   if (!session) throw new Error("Sign in to save cloud data.")
-  return request<{ data: T[] }>(`/functions/v1/api/v1/${apiResource(table)}`, {
+  return request<{ data: T[] }>(`/api/v1/${apiResource(table)}`, {
     method: "POST",
     body: JSON.stringify(row),
   }, session.access_token).then((result) => result.data)
