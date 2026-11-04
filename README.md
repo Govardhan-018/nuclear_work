@@ -38,7 +38,7 @@ seeded rows; anything you have added yourself stays.
 
 Set `VITE_MAYA_API_URL` to the Render API origin when building the web app or APK. Create an account or sign in from **Settings → Cloud sync**. Signed-in devices synchronize through the same Maya API while preserving a local offline copy.
 
-Render runs from the `backend/` directory on the `backend` branch. Keep Supabase credentials in Render environment variables only. Apply `supabase/migrations/0001_initial_schema.sql` before enabling sync. See [WEB_CLOUD.md](WEB_CLOUD.md) for setup details.
+Render runs from the `backend/` directory on the `backend` branch. Keep Supabase credentials in Render environment variables only. Apply [the initial schema migration](https://github.com/Govardhan-018/nuclear_work/blob/backend/supabase/migrations/0001_initial_schema.sql) before enabling sync. See [WEB_CLOUD.md](WEB_CLOUD.md) for setup details.
 
 ## Setting up Strava
 
