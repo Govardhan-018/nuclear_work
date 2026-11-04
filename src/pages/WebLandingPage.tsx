@@ -26,7 +26,7 @@ export function WebLandingPage({ onEnter }: { onEnter: () => void }) {
             </button>
             <a href="#how-it-feels">See what’s inside</a>
           </div>
-          <p className="web-private-note">Private by default · No account required</p>
+          <p className="web-private-note">Private by default · Sync across your devices</p>
         </div>
 
         <div className="web-preview" aria-label="Maya dashboard preview">
