@@ -286,25 +286,29 @@ returns trigger
 language plpgsql
 security definer
 set search_path = public
-as $$
+as $
+declare
+  record_id text;
 begin
   if tg_op = 'DELETE' then
+    record_id := case when tg_table_name = 'settings' then old.key else old.id end;
     insert into public.sync_events (user_id, table_name, record_id, operation, payload)
-    values (old.user_id, tg_table_name, old.id, 'delete', to_jsonb(old));
+    values (old.user_id, tg_table_name, record_id, 'delete', to_jsonb(old));
     return old;
   end if;
 
+  record_id := case when tg_table_name = 'settings' then new.key else new.id end;
   insert into public.sync_events (user_id, table_name, record_id, operation, payload)
   values (
     new.user_id,
     tg_table_name,
-    new.id,
+    record_id,
     case when tg_op = 'INSERT' then 'insert' else 'update' end,
     to_jsonb(new)
   );
   return new;
 end;
-$$;
+$;
 
 do $$
 declare
@@ -335,6 +339,8 @@ begin
     'ai_messages', 'settings'
   ] loop
     execute format('alter table public.%I enable row level security', table_name);
+    execute format('revoke all on public.%I from anon', table_name);
+    execute format('grant select, insert, update, delete on public.%I to authenticated', table_name);
     execute format(
       'create policy %I on public.%I for all to authenticated using ((select auth.uid()) = user_id) with check ((select auth.uid()) = user_id)',
       table_name || '_owner_policy',
