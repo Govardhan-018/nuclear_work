@@ -1,3 +1,4 @@
+import { CloudSyncSection } from "../components/CloudSyncSection"
 import { useEffect, useRef, useState } from "react"
 import { Icon } from "../components/Icon"
 import { Badge, Button, Card, Modal, PageHeader, SectionTitle } from "../components/UI"
@@ -37,7 +38,7 @@ export function SettingsPage(_props: PageProps) {
       <PageHeader
         eyebrow="Settings"
         title="Make it yours."
-        description="Your data stays on this device. Connect Strava and an AI model only if you want them."
+        description="Your data stays available offline and can sync across web and Android. Connect Strava and an AI model if you want them."
       />
 
       {toast && (
@@ -51,6 +52,7 @@ export function SettingsPage(_props: PageProps) {
       )}
 
       <ProfileSection />
+      <CloudSyncSection />
       <TargetsSection />
       <StravaSection onNotify={notify} />
       <AiSection onNotify={notify} />
@@ -598,7 +600,7 @@ function DataSection({ onNotify }: { onNotify: (k: "ok" | "error", t: string) =>
     <Card className="settings-card">
       <SectionTitle
         title="Your data"
-        subtitle="Everything lives in this app's private storage on this device."
+        subtitle="A local copy stays on this device for offline use. Sign in above to sync through Maya cloud."
       />
 
       <div className="settings-counts">
@@ -695,8 +697,8 @@ function DataSection({ onNotify }: { onNotify: (k: "ok" | "error", t: string) =>
       {confirmClear && (
         <Modal title="Clear everything?" onClose={() => setConfirmClear(false)}>
           <p className="modal-intro">
-            This permanently deletes every record on this device. Your Strava and Groq keys
-            are kept so you do not have to re-enter them. This cannot be undone.
+            This deletes records from this device. Your Strava and Groq keys are kept. If cloud sync
+            is enabled, your cloud copy remains and will download again the next time you sync.
           </p>
           <div className="modal-actions">
             <Button variant="secondary" onClick={() => setConfirmClear(false)}>
@@ -741,8 +743,8 @@ function AboutSection() {
         </div>
       </div>
       <p className="soft-note">
-        Maya keeps everything on device. Strava sync and the AI coach are the only features
-        that reach the network, and both are off until you add your own keys.
+        Maya keeps a local copy for offline use. When Cloud sync is connected, records sync through
+        Maya's backend; Strava and AI features use the services configured in Settings.
       </p>
     </Card>
   )

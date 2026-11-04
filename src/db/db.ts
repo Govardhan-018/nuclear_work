@@ -19,8 +19,8 @@ import type {
 
 /**
  * Local-first store. IndexedDB lives in the app's private storage on Android,
- * so everything here works with no network. Records keep `updatedAt`/`deleted`
- * so a remote backend can be layered on later without migrating data.
+ * so the app remains usable without a network. Sync metadata lets signed-in
+ * users share records through the Maya API.
  */
 export class LifeOsDatabase extends Dexie {
   tasks!: EntityTable<Task, "id">

@@ -1,3 +1,5 @@
+import { http } from "./platform"
+
 export type WebUser = {
   id: string
   email?: string
@@ -38,7 +40,7 @@ export function saveWebSession(session: WebSession | null): void {
   else localStorage.removeItem(SESSION_KEY)
 }
 
-function requireConfig(): { url: string; key: string } {
+function requireConfig(): { url: string } {
   if (!API_URL) throw new Error("Maya API is not configured for this web build.")
   return { url: API_URL }
 }
@@ -49,25 +51,24 @@ async function request<T>(
   accessToken?: string,
 ): Promise<T> {
   const { url } = requireConfig()
-  const headers = new Headers(options.headers)
-  headers.set("Accept", "application/json")
-  if (options.body) headers.set("Content-Type", "application/json")
-  if (accessToken) headers.set("Authorization", `Bearer ${accessToken}`)
+  const headers: Record<string, string> = { Accept: "application/json" }
+  if (options.body) headers["Content-Type"] = "application/json"
+  if (accessToken) headers.Authorization = "Bearer " + accessToken
 
-  const response = await fetch(`${url}${path}`, { ...options, headers })
-  const text = await response.text()
-  let payload: unknown = null
-  try { payload = text ? JSON.parse(text) : null } catch { payload = text }
-  if (!response.ok) {
-    const message =
-      typeof payload === "object" && payload !== null && "msg" in payload
-        ? String((payload as { msg: unknown }).msg)
-        : typeof payload === "object" && payload !== null && "message" in payload
-          ? String((payload as { message: unknown }).message)
-          : `Supabase request failed (${response.status})`
-    throw new Error(message)
+  let body: unknown
+  if (typeof options.body === "string") {
+    try { body = JSON.parse(options.body) } catch { body = options.body }
+  } else {
+    body = options.body
   }
-  return payload as T
+  const response = await http<T>({
+    url: url + path,
+    method: (options.method ?? "GET") as "GET" | "POST" | "PUT" | "DELETE",
+    headers,
+    body,
+  })
+  if (!response.ok) throw new Error(response.error || "Maya API request failed (" + response.status + ")")
+  return response.data
 }
 
 export async function signInWithPassword(email: string, password: string): Promise<WebSession> {
@@ -75,8 +76,9 @@ export async function signInWithPassword(email: string, password: string): Promi
     method: "POST",
     body: JSON.stringify({ email, password }),
   })
-  saveWebSession(session)
-  return session
+  const normalized = normalizeSession(session)
+  saveWebSession(normalized)
+  return normalized
 }
 
 export async function signUpWithPassword(email: string, password: string): Promise<WebSession | null> {
@@ -85,8 +87,9 @@ export async function signUpWithPassword(email: string, password: string): Promi
     body: JSON.stringify({ email, password }),
   })
   if ("access_token" in result) {
-    saveWebSession(result)
-    return result
+    const normalized = normalizeSession(result)
+    saveWebSession(normalized)
+    return normalized
   }
   return null
 }
@@ -99,8 +102,9 @@ export async function refreshWebSession(): Promise<WebSession | null> {
       method: "POST",
       body: JSON.stringify({ refresh_token: current.refresh_token }),
     })
-    saveWebSession(session)
-    return session
+    const normalized = normalizeSession(session)
+    saveWebSession(normalized)
+    return normalized
   } catch {
     saveWebSession(null)
     return null
@@ -147,4 +151,35 @@ export async function invokeCloudFunction<T>(
     method: "POST",
     body: JSON.stringify(body),
   }, session.access_token)
+}
+function normalizeSession(session: WebSession): WebSession {
+  if (!session.expires_at && "expires_in" in session) {
+    const expiresIn = Number((session as WebSession & { expires_in?: number }).expires_in)
+    if (expiresIn > 0) session.expires_at = Math.floor(Date.now() / 1000) + expiresIn
+  }
+  return session
+}
+
+export async function ensureWebSession(): Promise<WebSession | null> {
+  const current = loadWebSession()
+  if (!current) return null
+  if (!current.expires_at || current.expires_at <= Math.floor(Date.now() / 1000) + 60) {
+    return refreshWebSession()
+  }
+  return current
+}
+
+export type CloudBootstrap = Record<string, Array<Record<string, unknown>>>
+export type CloudChange = { table: string; recordId: string; operation: "upsert" | "delete"; data: Record<string, unknown> }
+
+export async function fetchCloudBootstrap(): Promise<CloudBootstrap> {
+  const session = await ensureWebSession()
+  if (!session) throw new Error("Sign in to access cloud data.")
+  return request<{ data: CloudBootstrap }>("/api/v1/bootstrap", {}, session.access_token).then((result) => result.data)
+}
+
+export async function pushCloudChanges(changes: CloudChange[]): Promise<void> {
+  const session = await ensureWebSession()
+  if (!session) throw new Error("Sign in to save cloud data.")
+  await request("/api/v1/sync", { method: "POST", body: JSON.stringify({ changes }) }, session.access_token)
 }

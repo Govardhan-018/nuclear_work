@@ -1,8 +1,8 @@
 # Maya
 
-React + Vite + Tailwind CSS, packaged as a standalone Android app with
-Capacitor. Local-first: everything works offline except Strava sync and the AI
-coach.
+React + Vite + Tailwind CSS, packaged as an Android app with Capacitor and
+available on the web. The app is local-first and offline-capable; signed-in
+records sync through the shared Maya API hosted on Render.
 
 ## Development Server
 
@@ -46,6 +46,7 @@ path is missing, or when the repository contradicts this guide.
 
 ### `src/services/`
 
+- `supabase.ts` - Legacy filename for the Maya API client: account auth and cloud sync. Do not connect the clients directly to Supabase.
 - `platform.ts` - The single HTTP entry point. Uses CapacitorHttp natively so
   requests are not subject to the WebView's CORS policy.
 - `strava.ts` - OAuth, token refresh, incremental activity import.
@@ -116,8 +117,7 @@ screen rather than introducing a parallel utility-based style.
 - **Deletes are soft** (`deleted: 1`), except Settings → Clear all data.
 - **Charts must survive empty and all-zero data.** Weekday initials repeat
   ("T", "S"), so list keys need the index, not just the label.
-- **Offline is the default.** Anything needing the network must degrade with a
-  clear message rather than failing silently.
+- **Offline is the default.** Local data remains usable without a network. Signed-in cloud sync retries when connectivity returns and reports failures clearly.
 - **Never name a class after a Tailwind utility.** `ring` collided with
   Tailwind's ring utility and painted a 1px box shadow over the timer; the
   component is now `progress-ring`.
