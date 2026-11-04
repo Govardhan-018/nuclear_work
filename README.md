@@ -1,14 +1,11 @@
 # Maya
 
-A personal tracker for study, reading, food, tasks, habits and fitness, built
-as a standalone Android app.
+A personal tracker for study, reading, food, tasks, habits and fitness, available on web and Android.
 
-Everything works offline. The only two features that touch the network are
-Strava sync and the AI coach, and both stay off until you add your own API
-keys in Settings.
+Maya works offline with a local IndexedDB copy. Sign in to Cloud sync in Settings to share your records between web and Android through the Maya API on Render. The clients do not connect directly to Supabase.
 
-- **Local-first.** All data lives in IndexedDB inside the app's private
-  storage. No account, no server, no subscription.
+- **Local-first.** Data stays available on this device; when signed in, it syncs through your Maya account.
+
 - **Strava import.** Pulls your activities in and keeps them.
 - **AI coach.** Optional, runs on Groq, and is only ever sent a summary of
   data you have logged yourself.
@@ -36,6 +33,12 @@ something to show. When you're ready to use it for real, go to
 seeded rows; anything you have added yourself stays.
 
 ---
+
+## Cloud sync
+
+Set `VITE_MAYA_API_URL` to the Render API origin when building the web app or APK. Create an account or sign in from **Settings → Cloud sync**. Signed-in devices synchronize through the same Maya API while preserving a local offline copy.
+
+Render runs from the `backend/` directory on the `backend` branch. Keep Supabase credentials in Render environment variables only. Apply `supabase/migrations/0001_initial_schema.sql` before enabling sync. See [WEB_CLOUD.md](WEB_CLOUD.md) for setup details.
 
 ## Setting up Strava
 
