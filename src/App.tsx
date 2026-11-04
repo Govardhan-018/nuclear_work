@@ -3,11 +3,14 @@ import { navItems } from "./data"
 import { PAGE_IDS, type PageId } from "./types"
 import { MobileNav, PRIMARY_TABS, Sidebar, Topbar } from "./components/Layout"
 import { MoreSheet } from "./components/MoreSheet"
+import { AuthGate } from "./components/AuthGate"
+import { LoadingOverlay } from "./components/LoadingOverlay"
 import { Button, Modal } from "./components/UI"
 import { Icon } from "./components/Icon"
 import { MayaMark } from "./components/MayaMark"
 import { initializeDatabase } from "./db/seed"
 import { startAutomaticCloudSync } from "./services/cloudSync"
+import { ensureWebSession, loadWebSession } from "./services/supabase"
 import { setSetting, useSettings } from "./db/settings"
 import { useDbReady } from "./db/stats"
 import {
@@ -44,9 +47,35 @@ export default function App() {
   const [banner, setBanner] = useState<{ ok: boolean; text: string } | null>(null)
   const [booted, setBooted] = useState(false)
   const [databaseReady, setDatabaseReady] = useState(false)
+  const [authChecked, setAuthChecked] = useState(false)
+  const [signedIn, setSignedIn] = useState(false)
 
   /* Internal history so the Android back button can walk back through pages. */
   const history = useRef<PageId[]>([pageFromHash()])
+
+  useEffect(() => {
+    let cancelled = false
+    const checkSession = () => {
+      void ensureWebSession().then((session) => {
+        if (cancelled) return
+        setSignedIn(Boolean(session))
+        setAuthChecked(true)
+      }).catch(() => {
+        if (cancelled) return
+        setSignedIn(false)
+        setAuthChecked(true)
+      })
+    }
+    const onSessionChange = () => setSignedIn(Boolean(loadWebSession()))
+    checkSession()
+    window.addEventListener("maya:cloud-session-changed", onSessionChange)
+    window.addEventListener("maya:cloud-sync-error", onSessionChange)
+    return () => {
+      cancelled = true
+      window.removeEventListener("maya:cloud-session-changed", onSessionChange)
+      window.removeEventListener("maya:cloud-sync-error", onSessionChange)
+    }
+  }, [])
 
   const navigate = useCallback((next: PageId) => {
     setPage((current) => {
@@ -218,7 +247,7 @@ export default function App() {
     settings: <SettingsPage {...pageProps} />,
   }
 
-  if (!booted || !ready) {
+  if (!booted || !ready || !databaseReady || !authChecked) {
     return (
       <div className="app-boot">
         <MayaMark size={56} />
@@ -226,6 +255,9 @@ export default function App() {
         <i />
       </div>
     )
+  }
+  if (!signedIn) {
+    return <AuthGate onAuthenticated={() => { setSignedIn(true); window.dispatchEvent(new Event("maya:cloud-session-changed")) }} />
   }
 
   return (
