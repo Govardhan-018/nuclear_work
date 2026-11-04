@@ -1,14 +1,11 @@
 # Maya
 
-A personal tracker for study, reading, food, tasks, habits and fitness, built
-as a standalone Android app.
+A personal tracker for study, reading, food, tasks, habits and fitness, available on web and Android.
 
-Everything works offline. The only two features that touch the network are
-Strava sync and the AI coach, and both stay off until you add your own API
-keys in Settings.
+Maya works offline with a local IndexedDB copy. Sign in to Cloud sync in Settings to share your records between web and Android through the Maya API on Render. The clients do not connect directly to Supabase.
 
-- **Local-first.** All data lives in IndexedDB inside the app's private
-  storage. No account, no server, no subscription.
+- **Local-first.** Data stays available on this device; when signed in, it syncs through your Maya account.
+
 - **Strava import.** Pulls your activities in and keeps them.
 - **AI coach.** Optional, runs on Groq, and is only ever sent a summary of
   data you have logged yourself.
@@ -36,6 +33,14 @@ something to show. When you're ready to use it for real, go to
 seeded rows; anything you have added yourself stays.
 
 ---
+
+## Cloud sync and web setup
+
+The web client and Android app use the same Render API. Set `VITE_MAYA_API_URL` to the Render API origin when building the web app or APK. In Vercel, use the repository root, Vite preset, `pnpm build`, and `dist` output.
+
+Create an account or sign in from **Settings → Cloud sync**. The first sync merges the device's local records with the account data, using the latest record timestamp. Data remains available offline; edits sync when online, when the app returns to the foreground, and periodically while open.
+
+Render runs from the `backend/` directory on the `backend` branch. Keep Supabase credentials in Render environment variables only. Apply `supabase/migrations/0001_initial_schema.sql` before enabling account sync. See [WEB_CLOUD.md](WEB_CLOUD.md) for deployment configuration.
 
 ## Setting up Strava
 
@@ -88,10 +93,7 @@ returning errors, wait a moment or pick a smaller one such as
 
 ### A note on where the key lives
 
-This app has no server. The key you enter is stored on the device, in the
-app's private storage, and the request goes straight from your phone to Groq.
-That is a consequence of the app being standalone and offline-first; there is
-no backend to proxy through and keep the key off the device.
+The Groq key you enter is stored on the device, in the app's private storage, and coach requests go directly from your device to Groq. Maya's backend handles account data sync; it does not proxy Groq requests. The key is excluded from exported backups.
 
 You can instead compile a key in at build time with `VITE_GROQ_API_KEY` (see
 `.env.example`), but that key ships inside the APK and can be extracted from
