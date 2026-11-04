@@ -61,7 +61,7 @@ export async function http<T = unknown>(req: HttpRequest): Promise<HttpResponse<
         ok: status >= 200 && status < 300,
         status,
         data: response.data as T,
-        error: status >= 200 && status < 300 ? undefined : describe(response.data),
+        error: status >= 200 && status < 300 ? undefined : describe(response.data, status),
       }
     } catch (error) {
       throw new NetworkError(
@@ -93,7 +93,7 @@ export async function http<T = unknown>(req: HttpRequest): Promise<HttpResponse<
       ok: response.ok,
       status: response.status,
       data: data as T,
-      error: response.ok ? undefined : describe(data),
+      error: response.ok ? undefined : describe(data, response.status),
     }
   } catch (error) {
     if (error instanceof DOMException && error.name === "AbortError") {
@@ -108,16 +108,16 @@ export async function http<T = unknown>(req: HttpRequest): Promise<HttpResponse<
 }
 
 /** Best-effort human-readable message out of an arbitrary error payload. */
-function describe(data: unknown): string {
+function describe(data: unknown, status?: number): string {
   if (typeof data === "string" && data.trim()) return data.slice(0, 300)
   if (data && typeof data === "object") {
     const record = data as Record<string, unknown>
     const candidate =
-      record.message ?? record.error_description ?? record.error ?? record.errors
+      record.message ?? record.msg ?? record.error_description ?? record.error ?? record.errors
     if (typeof candidate === "string") return candidate
     if (candidate) return JSON.stringify(candidate).slice(0, 300)
   }
-  return "Request failed"
+  return status ? `Request failed (${status})` : "Request failed"
 }
 
 /** Navigator.onLine is a hint, not a guarantee, but it is enough to skip calls. */
