@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react"
+import { useEffect, useState, type FormEvent } from "react"
 import {
   isWebCloudConfigured, loadWebSession, signInWithPassword, signOutWeb, signUpWithPassword,
 } from "../services/supabase"
@@ -30,7 +30,7 @@ export function CloudSyncSection() {
     }
   }, [])
 
-  async function submit(event: React.FormEvent<HTMLFormElement>) {
+  async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     setBusy(true)
     setError("")
