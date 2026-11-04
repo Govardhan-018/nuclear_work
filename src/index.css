@@ -1526,3 +1526,16 @@ html[data-theme="dark"] .badge-down { background:#303330; color:#b4b8b3; }
 .auth-switch:disabled { opacity:.5; cursor:not-allowed; }
 html[data-theme="dark"] .auth-gate { background:radial-gradient(circle at 50% 0%, #253129, transparent 46%), var(--bg); }
 html[data-theme="dark"] .auth-feedback.error { background:#432620; color:#f3b19d; }
+
+.loading-overlay { min-height:100dvh; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:16px; padding:24px; background:var(--bg); color:var(--ink); }
+.loading-overlay.loading-inline { min-height:180px; border-radius:18px; background:var(--surface-2); }
+.loading-mark { position:relative; display:grid; place-items:center; width:76px; height:76px; }
+.loading-mark > svg { position:relative; z-index:2; }
+.loading-orbit { position:absolute; border:1px solid var(--teal); border-radius:999px; opacity:.45; animation:loading-orbit 1.8s ease-in-out infinite; }
+.loading-orbit-one { width:64px; height:64px; }
+.loading-orbit-two { width:76px; height:76px; animation-delay:.45s; }
+.loading-overlay > strong { font-size:15px; }
+.loading-progress { width:min(190px, 62vw); height:4px; overflow:hidden; border-radius:999px; background:var(--line); }
+.loading-progress i { display:block; width:42%; height:100%; border-radius:inherit; background:var(--teal); animation:loading-progress 1.15s ease-in-out infinite; }
+@keyframes loading-orbit { 0%,100% { transform:scale(.78); opacity:.16; } 50% { transform:scale(1); opacity:.58; } }
+@keyframes loading-progress { 0% { transform:translateX(-110%); } 100% { transform:translateX(270%); } }
