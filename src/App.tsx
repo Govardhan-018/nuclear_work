@@ -7,6 +7,7 @@ import { Button, Modal } from "./components/UI"
 import { Icon } from "./components/Icon"
 import { MayaMark } from "./components/MayaMark"
 import { initializeDatabase } from "./db/seed"
+import { startAutomaticCloudSync } from "./services/cloudSync"
 import { setSetting, useSettings } from "./db/settings"
 import { useDbReady } from "./db/stats"
 import {
@@ -42,6 +43,7 @@ export default function App() {
   const [mobileMenu, setMobileMenu] = useState(false)
   const [banner, setBanner] = useState<{ ok: boolean; text: string } | null>(null)
   const [booted, setBooted] = useState(false)
+  const [databaseReady, setDatabaseReady] = useState(false)
 
   /* Internal history so the Android back button can walk back through pages. */
   const history = useRef<PageId[]>([pageFromHash()])
@@ -67,6 +69,7 @@ export default function App() {
       })
       .finally(() => {
         if (!cancelled) {
+          setDatabaseReady(true)
           setBooted(true)
           void hideSplash()
         }
@@ -75,6 +78,11 @@ export default function App() {
       cancelled = true
     }
   }, [])
+
+  useEffect(() => {
+    if (!databaseReady) return
+    return startAutomaticCloudSync()
+  }, [databaseReady])
 
   useEffect(() => {
     const onHash = () => {
