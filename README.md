@@ -40,7 +40,7 @@ The web client and Android app use the same Render API. Set `VITE_MAYA_API_URL` 
 
 Create an account or sign in from **Settings → Cloud sync**. The first sync merges the device's local records with the account data, using the latest record timestamp. Data remains available offline; edits sync when online, when the app returns to the foreground, and periodically while open.
 
-Render runs from the `backend/` directory on the `backend` branch. Keep Supabase credentials in Render environment variables only. Apply `supabase/migrations/0001_initial_schema.sql` before enabling account sync. See [WEB_CLOUD.md](WEB_CLOUD.md) for deployment configuration.
+Render runs from the `backend/` directory on the `backend` branch. Keep Supabase credentials in Render environment variables only. Apply [the initial schema migration](https://github.com/Govardhan-018/nuclear_work/blob/backend/supabase/migrations/0001_initial_schema.sql) before enabling account sync. See [WEB_CLOUD.md](WEB_CLOUD.md) for deployment configuration.
 
 ## Setting up Strava
 
