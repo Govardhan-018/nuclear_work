@@ -98,7 +98,7 @@ export function CloudSyncSection() {
             <Badge tone="teal">Connected</Badge>
           </div>
           <div className="header-actions">
-            <Button variant="secondary" icon="refresh" onClick={() => void syncNow()} disabled={busy}>
+            <Button variant="secondary" onClick={() => void syncNow()} disabled={busy}>
               {busy ? "Syncing…" : "Sync now"}
             </Button>
             <Button variant="ghost" onClick={() => void signOut()} disabled={busy}>Sign out</Button>
