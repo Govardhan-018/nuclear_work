@@ -5,7 +5,7 @@ name: Android
 # Release, which is how app updates reach the phone.
 on:
   push:
-    branches: ["main", "claude/**"]
+    branches: ["main", "claude/**", "android-app"]
     tags: ["v*"]
   workflow_dispatch:
     inputs:
@@ -72,6 +72,8 @@ jobs:
         run: pnpm typecheck
 
       - name: Build web assets
+        env:
+          VITE_MAYA_API_URL: ${{ vars.VITE_MAYA_API_URL || 'https://nuclear-work.onrender.com' }}
         run: pnpm build
 
       - name: Sync Capacitor
