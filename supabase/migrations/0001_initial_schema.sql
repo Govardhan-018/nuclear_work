@@ -310,7 +310,7 @@ begin
 end;
 $;
 
-do $$
+do $
 declare
   table_name text;
 begin
