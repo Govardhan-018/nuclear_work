@@ -1487,3 +1487,42 @@ html[data-theme="dark"] .badge-down { background:#303330; color:#b4b8b3; }
 .auth-form { display:flex; flex-direction:column; gap:14px; }
 .auth-switch { min-height:44px; border:0; background:transparent; color:var(--muted); font:inherit; font-size:14px; cursor:pointer; }
 .auth-switch:disabled { opacity:.5; cursor:not-allowed; }
+
+/* Account entry is deliberately compact: it is the first useful screen on web and Android. */
+.auth-gate {
+  min-height:100dvh;
+  display:grid;
+  place-items:center;
+  padding:clamp(18px, 4vw, 48px);
+  background:radial-gradient(circle at 50% 0%, var(--teal-soft), transparent 46%), var(--bg);
+  color:var(--ink);
+}
+.auth-card {
+  width:min(100%, 460px);
+  display:flex;
+  flex-direction:column;
+  gap:20px;
+  padding:clamp(24px, 5vw, 40px);
+  border:1px solid var(--line);
+  border-radius:28px;
+  background:var(--surface);
+  box-shadow:var(--shadow);
+}
+.auth-topline { display:flex; align-items:center; justify-content:space-between; gap:16px; }
+.auth-brand { display:flex; align-items:center; gap:10px; color:var(--ink); font-size:14px; font-weight:750; letter-spacing:.18em; }
+.auth-private { padding:6px 9px; border-radius:999px; background:var(--teal-soft); color:var(--teal-dark); font-size:12px; font-weight:700; }
+.auth-intro { display:flex; flex-direction:column; gap:10px; }
+.auth-intro .eyebrow { margin:0; }
+.auth-card h1 { margin:0; max-width:11ch; font-size:clamp(31px, 7vw, 44px); line-height:1.03; letter-spacing:-.045em; }
+.auth-intro > p:last-child { margin:0; color:var(--muted); line-height:1.55; }
+.auth-form { display:flex; flex-direction:column; gap:14px; }
+.auth-form .field { gap:8px; }
+.auth-form .field input { min-height:50px; }
+.auth-feedback { margin:0; padding:11px 12px; border-radius:12px; font-size:14px; line-height:1.45; }
+.auth-feedback.success { background:var(--teal-soft); color:var(--teal-dark); }
+.auth-feedback.error { background:#fbeeea; color:#b4503c; }
+.auth-footer { display:flex; flex-wrap:wrap; justify-content:center; align-items:center; gap:6px; color:var(--muted); font-size:14px; text-align:center; }
+.auth-switch { min-height:32px; border:0; padding:0; background:transparent; color:var(--teal-dark); font:inherit; font-weight:700; cursor:pointer; }
+.auth-switch:disabled { opacity:.5; cursor:not-allowed; }
+html[data-theme="dark"] .auth-gate { background:radial-gradient(circle at 50% 0%, #253129, transparent 46%), var(--bg); }
+html[data-theme="dark"] .auth-feedback.error { background:#432620; color:#f3b19d; }
