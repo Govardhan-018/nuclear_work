@@ -43,6 +43,7 @@ export default function App() {
 
   /* Internal history so the Android back button can walk back through pages. */
   const history = useRef<PageId[]>([pageFromHash()])
+  const databaseInitialized = useRef(false)
 
   const navigate = useCallback((next: PageId) => {
     setPage((current) => {
@@ -63,6 +64,9 @@ export default function App() {
       void hideSplash()
       return
     }
+    if (databaseInitialized.current) return
+    databaseInitialized.current = true
+
     let cancelled = false
     void initializeDatabase()
       .catch((error) => {
