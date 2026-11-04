@@ -22,11 +22,18 @@ export function CloudSyncSection() {
       setError("")
       refresh()
     }
+    const failed = (event: Event) => {
+      const detail = (event as CustomEvent<{ message: string }>).detail
+      setError(detail.message)
+      refresh()
+    }
     window.addEventListener("maya:cloud-session-changed", refresh)
     window.addEventListener("maya:cloud-sync-complete", synced)
+    window.addEventListener("maya:cloud-sync-error", failed)
     return () => {
       window.removeEventListener("maya:cloud-session-changed", refresh)
       window.removeEventListener("maya:cloud-sync-complete", synced)
+      window.removeEventListener("maya:cloud-sync-error", failed)
     }
   }, [])
 
