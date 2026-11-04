@@ -5,7 +5,7 @@ name: Android
 # Release, which is how app updates reach the phone.
 on:
   push:
-    branches: ["main", "claude/**", "android-app"]
+    branches: ["claude/**", "android-app"]
     tags: ["v*"]
   workflow_dispatch:
     inputs:
