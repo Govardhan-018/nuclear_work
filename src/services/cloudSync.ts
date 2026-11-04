@@ -72,11 +72,14 @@ async function performSync(): Promise<{ pushed: number; pulled: number }> {
         continue
       }
 
+      const data = { ...local }
+      delete data.syncedAt
+      delete data.remoteId
       const change: CloudChange = {
         table: tableName,
         recordId: key,
         operation: local.deleted === 1 ? "delete" : "upsert",
-        data: local,
+        data,
       }
       pending.push({ collection, key, row: local, change })
     }
